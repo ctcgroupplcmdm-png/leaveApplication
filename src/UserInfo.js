@@ -1,31 +1,53 @@
-import { useMsal } from "@azure/msal-react";
 import { useEffect, useState } from "react";
-import { getUserPhone } from "./graph"; // 👈 helper for MS Graph
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "./authConfig";
 
 function UserInfo() {
   const { instance, accounts } = useMsal();
-  const account = accounts[0]; // first signed-in account
   const [phone, setPhone] = useState(null);
+  const [objectId, setObjectId] = useState(null);
 
   useEffect(() => {
-    async function fetchPhone() {
-      if (account) {
-        const phoneNumber = await getUserPhone(instance, account);
-        setPhone(phoneNumber);
-      }
+    if (accounts.length > 0) {
+      const account = accounts[0];
+      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub; // 👈 safe grab
+      setObjectId(oid);
+
+      instance
+        .acquireTokenSilent({
+          ...loginRequest,
+          account,
+        })
+        .then((response) => {
+          const accessToken = response.accessToken;
+
+          return fetch(
+            `https://graph.microsoft.com/v1.0/users/${oid}?$select=identities,mobilePhone`,
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          );
+        })
+        .then((res) => res.json())
+        .then((data) => {
+          setPhone(data.mobilePhone || "Not available");
+        })
+        .catch((err) => console.error(err));
     }
-    fetchPhone();
-  }, [account, instance]);
+  }, [accounts, instance]);
 
-  if (!account) return <p>Not signed in</p>;
-
-  const claims = account.idTokenClaims;
+  if (accounts.length === 0) return <p>Not signed in</p>;
 
   return (
     <div>
-      <p><b>Username:</b> {account.username}</p>
-      <p><b>Name:</b> {claims?.name}</p>
-      <p><b>Phone:</b> {phone || "Not available"}</p>
+      <p>
+        <b>Username:</b> {accounts[0].username}
+      </p>
+      <p>
+        <b>Object ID:</b> {objectId}
+      </p>
+      <p>
+        <b>Phone:</b> {phone}</p>
     </div>
   );
 }
