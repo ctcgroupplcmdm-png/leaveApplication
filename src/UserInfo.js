@@ -22,7 +22,7 @@ function UserInfo() {
           const accessToken = response.accessToken;
 
           return fetch(
-            `https://graph.microsoft.com/v1.0/users/${oid}?$select=identities,mobilePhone`,
+            `https://graph.microsoft.com/v1.0/users/${oid}`,
             {
               headers: { Authorization: `Bearer ${accessToken}` },
             }
