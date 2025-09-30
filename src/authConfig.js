@@ -13,6 +13,6 @@ export const loginRequest = {
     "openid",
     "profile",
     "offline_access",
-    "https://graph.microsoft.com/User.Read"
+    "https://graph.microsoft.com/User.ReadBasic.All"
   ]
 };
