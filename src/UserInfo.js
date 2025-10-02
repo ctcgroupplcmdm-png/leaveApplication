@@ -10,9 +10,10 @@ function UserInfo() {
   useEffect(() => {
     if (accounts.length > 0) {
       const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub; 
+      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
       setObjectId(oid);
 
+      // Get B2C token for auth (not always needed if Logic App is public, but safer with it)
       instance
         .acquireTokenSilent({
           ...loginRequest,
@@ -21,22 +22,22 @@ function UserInfo() {
         .then((response) => {
           const accessToken = response.accessToken;
 
-          // 🔹 Call your Logic App with oid
+          // 🔥 Call your Logic App endpoint
           return fetch(
-            "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg", // 👈 replace with your Logic App HTTP POST URL
+            "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
             {
               method: "POST",
               headers: {
-                "Authorization": `Bearer ${accessToken}`, // optional if your Logic App requires auth
+                Authorization: `Bearer ${accessToken}`, // optional if your Logic App requires auth
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ oid }), // 👈 send Object ID
+              body: JSON.stringify({ oid }), // send OID to Logic App
             }
           );
         })
         .then((res) => res.json())
         .then((data) => {
-          setPhone(data.mobilePhone || "Not available"); // 👈 assumes Logic App returns { "mobilePhone": "..." }
+          setPhone(data.mobilePhone || "Not available");
         })
         .catch((err) => console.error(err));
     }
@@ -46,12 +47,16 @@ function UserInfo() {
 
   return (
     <div>
-      <p><b>Username:</b> {accounts[0].username}</p>
-      <p><b>Object ID:</b> {objectId}</p>
-      <p><b>Phone:</b> {phone}</p>
+      <p>
+        <b>Username:</b> {accounts[0].username}
+      </p>
+      <p>
+        <b>Object ID:</b> {objectId}
+      </p>
+      <p>
+        <b>Phone:</b> {phone}</p>
     </div>
   );
 }
 
 export default UserInfo;
-
