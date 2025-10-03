@@ -48,16 +48,32 @@ function UserInfo() {
       <p><b>Phone:</b> {userData.mobilePhone}</p>
       <p><b>Employee ID:</b> {userData.employeeId}</p>
 
-      <h3>Leaves Taken</h3>
+      <h3>Leave History</h3>
       {leaves.length > 0 ? (
-        <ul>
-          {leaves.map((leave, index) => (
-            <li key={index}>
-              <b>{leave["Absence Description"]}</b>: {leave["Start Date"]} → {leave["End Date"]}  
-              ({leave["Working Date"]} days, Remaining: {leave["Remaining Balance"]})
-            </li>
-          ))}
-        </ul>
+        <table border="1" cellPadding="6" style={{ borderCollapse: "collapse", width: "100%" }}>
+          <thead>
+            <tr style={{ backgroundColor: "#f0f0f0" }}>
+              <th>Absence Description</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Working Days</th>
+              <th>Deduction</th>
+              <th>Remaining Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leaves.map((leave, index) => (
+              <tr key={index}>
+                <td>{leave["Absence Description"]}</td>
+                <td>{leave["Start Date"]}</td>
+                <td>{leave["End Date"]}</td>
+                <td>{leave["Working Date"]}</td>
+                <td>{leave["Annual Leave Deduction"]}</td>
+                <td>{leave["Remaining Balance"]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : (
         <p>No leaves recorded.</p>
       )}
