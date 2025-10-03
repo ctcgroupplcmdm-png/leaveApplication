@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
+import {
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Paper, Typography, CircularProgress
+} from "@mui/material";
 
 function UserInfo() {
   const { accounts } = useMsal();
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -22,8 +27,6 @@ function UserInfo() {
         .then((res) => res.json())
         .then((data) => {
           setUserData(data);
-
-          // Parse leavesTaken if it's a string
           try {
             if (data.leavesTaken) {
               const parsedLeaves = JSON.parse(data.leavesTaken);
@@ -32,50 +35,60 @@ function UserInfo() {
           } catch (err) {
             console.error("Failed to parse leavesTaken", err);
           }
+          setLoading(false);
         })
-        .catch((err) => console.error("Logic App call failed", err));
+        .catch((err) => {
+          console.error("Logic App call failed", err);
+          setLoading(false);
+        });
     }
   }, [accounts]);
 
-  if (accounts.length === 0) return <p>Not signed in</p>;
-  if (!userData) return <p>Loading...</p>;
+  if (accounts.length === 0) return <Typography>Not signed in</Typography>;
+  if (loading) return <CircularProgress />;
 
   return (
-    <div>
-      <h2>User Info</h2>
-      <p><b>Username:</b> {accounts[0].username}</p>
-      <p><b>Name:</b> {userData.displayName}</p>
-      <p><b>Phone:</b> {userData.mobilePhone}</p>
-      <p><b>Employee ID:</b> {userData.employeeId}</p>
+    <div style={{ padding: "20px" }}>
+      <Typography variant="h4" gutterBottom>
+        Welcome, {userData?.displayName}
+      </Typography>
+      <Typography variant="body1"><b>Username:</b> {accounts[0].username}</Typography>
+      <Typography variant="body1"><b>Employee ID:</b> {userData?.employeeId}</Typography>
+      <Typography variant="body1"><b>Phone:</b> {userData?.mobilePhone}</Typography>
 
-      <h3>Leave History</h3>
+      <Typography variant="h5" style={{ marginTop: "30px" }} gutterBottom>
+        Leave History
+      </Typography>
+
       {leaves.length > 0 ? (
-        <table border="1" cellPadding="6" style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#f0f0f0" }}>
-              <th>Absence Description</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Working Days</th>
-              <th>Deduction</th>
-              <th>Remaining Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leaves.map((leave, index) => (
-              <tr key={index}>
-                <td>{leave["Absence Description"]}</td>
-                <td>{leave["Start Date"]}</td>
-                <td>{leave["End Date"]}</td>
-                <td>{leave["Working Date"]}</td>
-                <td>{leave["Annual Leave Deduction"]}</td>
-                <td>{leave["Remaining Balance"]}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <TableContainer component={Paper} elevation={3}>
+          <Table>
+            <TableHead>
+              <TableRow style={{ backgroundColor: "#1976d2" }}>
+                <TableCell style={{ color: "white" }}>Absence Description</TableCell>
+                <TableCell style={{ color: "white" }}>Start Date</TableCell>
+                <TableCell style={{ color: "white" }}>End Date</TableCell>
+                <TableCell style={{ color: "white" }}>Working Days</TableCell>
+                <TableCell style={{ color: "white" }}>Deduction</TableCell>
+                <TableCell style={{ color: "white" }}>Remaining Balance</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {leaves.map((leave, index) => (
+                <TableRow key={index} hover>
+                  <TableCell>{leave["Absence Description"]}</TableCell>
+                  <TableCell>{leave["Start Date"]}</TableCell>
+                  <TableCell>{leave["End Date"]}</TableCell>
+                  <TableCell>{leave["Working Date"]}</TableCell>
+                  <TableCell>{leave["Annual Leave Deduction"]}</TableCell>
+                  <TableCell>{leave["Remaining Balance"]}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       ) : (
-        <p>No leaves recorded.</p>
+        <Typography>No leave records found.</Typography>
       )}
     </div>
   );
