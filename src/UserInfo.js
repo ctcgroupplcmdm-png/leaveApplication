@@ -13,10 +13,9 @@ import {
   TableHead,
   TableRow,
   Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 
 function UserInfo() {
@@ -25,7 +24,7 @@ function UserInfo() {
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
   const [annualAllowance, setAnnualAllowance] = useState(null);
-  const [filterType, setFilterType] = useState("All");
+  const [selectedTypes, setSelectedTypes] = useState([]);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -44,7 +43,12 @@ function UserInfo() {
         .then((data) => {
           if (data.leavesTaken) {
             const parsedLeaves = JSON.parse(data.leavesTaken);
-            setLeaves(parsedLeaves);
+
+            // Remove the "Yearly Entitlement Balance" row
+            const filteredLeaves = parsedLeaves.filter(
+              (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
+            );
+            setLeaves(filteredLeaves);
 
             // First entry = Annual Allowance
             const firstBalance = parsedLeaves[0]?.["Remaining Balance"] || 0;
@@ -70,11 +74,25 @@ function UserInfo() {
 
   const logout = () => instance.logoutRedirect();
 
-  const leaveTypes = ["All", ...new Set(leaves.map((l) => l["Absence Description"]))];
+  // Unique leave types (excluding "Yearly Entitlement Balance")
+  const leaveTypes = [
+    ...new Set(leaves.map((l) => l["Absence Description"])),
+  ];
+
+  // Handle checkbox change
+  const handleTypeChange = (type) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  // Apply filter
   const filteredLeaves =
-    filterType === "All"
+    selectedTypes.length === 0
       ? leaves
-      : leaves.filter((l) => l["Absence Description"] === filterType);
+      : leaves.filter((l) => selectedTypes.includes(l["Absence Description"]));
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
@@ -120,21 +138,21 @@ function UserInfo() {
         + New Leave Request
       </Button>
 
-      {/* Filter by leave type */}
-      <FormControl sx={{ mb: 2, minWidth: 200 }}>
-        <InputLabel>Filter by type</InputLabel>
-        <Select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          label="Filter by type"
-        >
-          {leaveTypes.map((type, index) => (
-            <MenuItem key={index} value={type}>
-              {type}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      {/* Inline Checkboxes for Leave Type Filters */}
+      <FormGroup row sx={{ mb: 2 }}>
+        {leaveTypes.map((type, index) => (
+          <FormControlLabel
+            key={index}
+            control={
+              <Checkbox
+                checked={selectedTypes.includes(type)}
+                onChange={() => handleTypeChange(type)}
+              />
+            }
+            label={type}
+          />
+        ))}
+      </FormGroup>
 
       <TableContainer component={Paper} elevation={2}>
         <Table>
