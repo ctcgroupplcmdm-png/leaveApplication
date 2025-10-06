@@ -59,7 +59,7 @@ function UserInfo() {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
 
-          // 🟢 Capture hidden “Yearly Entitlement Balance” row for Annual Allowance
+          // 🟢 Capture hidden “Yearly Entitlement Balance” row
           const hiddenRow = parsedLeaves.find(
             (l) => l["Absence Description"] === "Yearly Entitlement Balance"
           );
@@ -127,18 +127,40 @@ function UserInfo() {
 
   const logout = () => instance.logoutRedirect();
 
-  // 🧾 Export to PDF
-  const exportToPDF = () => {
+  // 🧾 Export to PDF (with logo, employee details, and table)
+  const exportToPDF = async () => {
     const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(
-      `${userData.companyName} - Leave Records (${selectedYear})`,
-      14,
-      15
-    );
+    const logoFile =
+      userData?.companyName && companyLogos[userData.companyName]
+        ? require(`./assets/logos/${companyLogos[userData.companyName]}`)
+        : null;
 
+    // Draw logo (if available)
+    if (logoFile) {
+      const logoImg = new Image();
+      logoImg.src = logoFile;
+      await new Promise((resolve) => {
+        logoImg.onload = () => {
+          doc.addImage(logoImg, "PNG", 14, 10, 25, 25);
+          resolve();
+        };
+      });
+    }
+
+    // Title and header info
+    doc.setFontSize(18);
+    doc.text(`${userData.companyName}`, 45, 20);
+    doc.setFontSize(12);
+    doc.text(`Employee: ${userData.name}`, 45, 28);
+    doc.text(`Employee ID: ${userData.employeeId}`, 45, 34);
+    doc.text(`Year: ${selectedYear}`, 45, 40);
+
+    doc.setFontSize(14);
+    doc.text("Leave Records", 14, 55);
+
+    // Leave data table
     autoTable(doc, {
-      startY: 25,
+      startY: 60,
       head: [["Type", "Start", "End", "Days", "Remaining"]],
       body: filteredLeaves.map((l) => [
         l["Absence Description"],
@@ -148,6 +170,14 @@ function UserInfo() {
         l["Remaining Balance"],
       ]),
     });
+
+    // Summary
+    const endY = doc.lastAutoTable.finalY + 10;
+    doc.text(
+      `Annual Allowance: ${annualAllowance} | Remaining Balance: ${remainingBalance}`,
+      14,
+      endY
+    );
 
     doc.save(`Leave_Records_${selectedYear}.pdf`);
   };
@@ -286,30 +316,18 @@ function UserInfo() {
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
             <TableRow>
-              <TableCell>
-                <b>Leave Type</b>
-              </TableCell>
-              <TableCell>
-                <b>Start Date</b>
-              </TableCell>
-              <TableCell>
-                <b>End Date</b>
-              </TableCell>
-              <TableCell>
-                <b>Days Deducted</b>
-              </TableCell>
-              <TableCell>
-                <b>Remaining Balance</b>
-              </TableCell>
+              <TableCell><b>Leave Type</b></TableCell>
+              <TableCell><b>Start Date</b></TableCell>
+              <TableCell><b>End Date</b></TableCell>
+              <TableCell><b>Days Deducted</b></TableCell>
+              <TableCell><b>Remaining Balance</b></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredLeaves.map((leave, index) => (
               <TableRow
                 key={index}
-                sx={{
-                  backgroundColor: getRowColor(leave["Absence Description"]),
-                }}
+                sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}
               >
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
