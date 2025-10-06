@@ -43,8 +43,16 @@ function UserInfo() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
 
-  const fetchLeaveData = (oid, year) => {
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+
+  const fetchLeaves = (year = currentYear) => {
+    if (accounts.length === 0) return;
     setLoading(true);
+
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+
     fetch(
       "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
       {
@@ -57,45 +65,34 @@ function UserInfo() {
       .then((data) => {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
-
-          const allowanceRow = parsedLeaves.find(
-            (l) => l["Absence Description"] === "Yearly Entitlement Balance"
-          );
           const filtered = parsedLeaves.filter(
             (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
           );
-
           setLeaves(filtered);
-          setRemainingBalance(
-            filtered[filtered.length - 1]?.["Remaining Balance"] || 0
-          );
 
-          setUserData({
-            name: data.displayName,
-            employeeId: data.employeeId,
-            phone: data.mobilePhone,
-            companyName: data.companyName || "Company",
-            annualAllowance: allowanceRow
-              ? allowanceRow["Remaining Balance"]
-              : 0,
-          });
+          const lastBalance =
+            filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
+          setRemainingBalance(lastBalance);
         }
+
+        setUserData({
+          name: data.displayName,
+          employeeId: data.employeeId,
+          phone: data.mobilePhone,
+          companyName: data.companyName || "Company",
+        });
       })
       .catch((err) => console.error("Error fetching Logic App data:", err))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-      fetchLeaveData(oid, selectedYear);
-    }
-  }, [accounts, selectedYear]);
+    fetchLeaves();
+    // eslint-disable-next-line
+  }, [accounts]);
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
-  // 🟢 Filter leaves by selected types
   const filteredLeaves = leaves.filter((leave) =>
     selectedTypes.includes(leave["Absence Description"])
   );
@@ -110,7 +107,6 @@ function UserInfo() {
     );
   };
 
-  // 🟦 Color by leave type
   const getRowColor = (type) => {
     switch (type) {
       case "Annual Leave":
@@ -126,21 +122,23 @@ function UserInfo() {
 
   const logout = () => instance.logoutRedirect();
 
-  // 🧾 Export to PDF
-  const exportToPDF = () => {
+  const generatePDF = () => {
+    if (!filteredLeaves.length) {
+      alert("No leave data to export.");
+      return;
+    }
+
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text(`${userData.companyName}`, 14, 15);
-    doc.setFontSize(12);
-    doc.text(`Employee: ${userData.name}`, 14, 25);
-    doc.text(`Employee ID: ${userData.employeeId}`, 14, 32);
-    doc.text(`Phone: ${userData.phone}`, 14, 39);
-    doc.text(`Year: ${selectedYear}`, 14, 46);
     doc.text(
-      `Annual Allowance: ${userData.annualAllowance} | Remaining: ${remainingBalance}`,
+      `${userData.companyName} - Leave Report (${selectedYear})`,
       14,
-      53
+      20
     );
+    doc.setFontSize(12);
+    doc.text(`Employee: ${userData.name}`, 14, 30);
+    doc.text(`Employee ID: ${userData.employeeId}`, 14, 38);
+    doc.text(`Phone: ${userData.phone}`, 14, 46);
 
     const tableData = filteredLeaves.map((leave) => [
       leave["Absence Description"],
@@ -151,13 +149,9 @@ function UserInfo() {
     ]);
 
     doc.autoTable({
-      startY: 60,
-      head: [
-        ["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"],
-      ],
+      head: [["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"]],
       body: tableData,
-      styles: { halign: "center" },
-      headStyles: { fillColor: [41, 128, 185] },
+      startY: 55,
     });
 
     doc.save(`Leave_Report_${selectedYear}.pdf`);
@@ -190,7 +184,7 @@ function UserInfo() {
         {/* Stats + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
-            label={`${userData.annualAllowance || 0} Annual Allowance`}
+            label={`${leaves[0]?.["Remaining Balance"] || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
@@ -219,40 +213,9 @@ function UserInfo() {
         justifyContent="space-between"
         sx={{ mt: 4, mb: 2 }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Typography variant="h5" fontWeight="bold">
-            Leave Records
-          </Typography>
-
-          {/* Year Buttons + Save PDF */}
-          <Box sx={{ display: "flex", gap: 1 }}>
-            {[selectedYear, selectedYear - 1].map((year) => (
-              <Button
-                key={year}
-                variant={selectedYear === year ? "contained" : "outlined"}
-                onClick={() => setSelectedYear(year)}
-                disabled={loading && selectedYear === year}
-                sx={{ textTransform: "none" }}
-              >
-                {loading && selectedYear === year ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  year
-                )}
-              </Button>
-            ))}
-            <Button
-              variant="outlined"
-              color="success"
-              onClick={exportToPDF}
-              sx={{ textTransform: "none" }}
-            >
-              Save as PDF
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Filters + New Leave */}
+        <Typography variant="h5" fontWeight="bold">
+          Leave Records
+        </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <FormGroup row>
             {leaveTypes.map((type, index) => (
@@ -268,11 +231,36 @@ function UserInfo() {
               />
             ))}
           </FormGroup>
+
+          {/* Year buttons */}
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {[currentYear, previousYear].map((year) => (
+              <Button
+                key={year}
+                variant={selectedYear === year ? "contained" : "outlined"}
+                onClick={() => {
+                  setSelectedYear(year);
+                  fetchLeaves(year);
+                }}
+                disabled={loading}
+                sx={{ textTransform: "none" }}
+              >
+                {loading && selectedYear === year ? (
+                  <CircularProgress size={18} sx={{ mr: 1 }} />
+                ) : null}
+                {year}
+              </Button>
+            ))}
+          </Box>
+
+          {/* PDF Export */}
           <Button
-            variant="contained"
-            sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
+            variant="outlined"
+            color="primary"
+            onClick={generatePDF}
+            sx={{ textTransform: "none" }}
           >
-            + New Leave Request
+            Save as PDF
           </Button>
         </Box>
       </Grid>
