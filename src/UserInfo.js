@@ -19,6 +19,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 
+// ✅ Map company names to logo filenames
 const companyLogos = {
   "Argosy Trading Company Ltd": "argosy.png",
   "Cyprus Trading Corporation Plc": "ctc.png",
@@ -36,68 +37,65 @@ function UserInfo() {
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
-  const [annualAllowance, setAnnualAllowance] = useState(null);
-  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]);
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [loadingYear, setLoadingYear] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Default: current year
+  const [loading, setLoading] = useState(false);
+
+  const fetchLeaveData = (oid, year) => {
+    setLoading(true);
+    fetch(
+      "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oid, year }),
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.leavesTaken) {
+          const parsedLeaves = JSON.parse(data.leavesTaken);
+
+          // Find hidden row for allowance
+          const allowanceRow = parsedLeaves.find(
+            (l) => l["Absence Description"] === "Yearly Entitlement Balance"
+          );
+
+          const filtered = parsedLeaves.filter(
+            (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
+          );
+
+          setLeaves(filtered);
+          setRemainingBalance(
+            filtered[filtered.length - 1]?.["Remaining Balance"] || 0
+          );
+
+          setUserData({
+            name: data.displayName,
+            employeeId: data.employeeId,
+            phone: data.mobilePhone,
+            companyName: data.companyName || "Company",
+            annualAllowance: allowanceRow
+              ? allowanceRow["Remaining Balance"]
+              : 0,
+          });
+        }
+      })
+      .catch((err) => console.error("Error fetching Logic App data:", err))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     if (accounts.length > 0) {
-      fetchData(selectedYear);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accounts, selectedYear]);
-
-  const fetchData = async (year) => {
-    try {
-      setLoadingYear(true);
       const account = accounts[0];
       const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-
-      const res = await fetch(
-        "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ oid, year }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (data.leavesTaken) {
-        const parsedLeaves = JSON.parse(data.leavesTaken);
-        const yearlyRow = parsedLeaves.find(
-          (l) => l["Absence Description"] === "Yearly Entitlement Balance"
-        );
-        setAnnualAllowance(yearlyRow?.["Remaining Balance"] || 0);
-
-        const filtered = parsedLeaves.filter(
-          (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
-        );
-        setLeaves(filtered);
-
-        const lastBalance =
-          filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
-        setRemainingBalance(lastBalance);
-      }
-
-      setUserData({
-        name: data.displayName,
-        employeeId: data.employeeId,
-        phone: data.mobilePhone,
-        companyName: data.companyName || "Company",
-      });
-    } catch (err) {
-      console.error("Error fetching Logic App data:", err);
-    } finally {
-      setLoadingYear(false);
+      fetchLeaveData(oid, selectedYear);
     }
-  };
+  }, [accounts, selectedYear]);
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
+  // 🟢 Filter leaves by selected types
   const filteredLeaves = leaves.filter((leave) =>
     selectedTypes.includes(leave["Absence Description"])
   );
@@ -112,6 +110,7 @@ function UserInfo() {
     );
   };
 
+  // 🟦 Color by leave type
   const getRowColor = (type) => {
     switch (type) {
       case "Annual Leave":
@@ -143,7 +142,7 @@ function UserInfo() {
             <img
               src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
               alt={userData.companyName}
-              style={{ width: 60, height: 60, objectFit: "contain" }}
+              style={{ width: 50, height: 50, objectFit: "contain" }}
             />
           )}
           <Typography variant="h6" fontWeight="bold">
@@ -154,7 +153,7 @@ function UserInfo() {
         {/* Stats + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
-            label={`${annualAllowance || 0} Annual Allowance`}
+            label={`${userData.annualAllowance || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
@@ -168,7 +167,15 @@ function UserInfo() {
         </Grid>
       </Grid>
 
-      {/* Header with Year Buttons + Filters */}
+      {/* Welcome Header */}
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Welcome {userData.name}
+      </Typography>
+      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+        Employee ID: {userData.employeeId}
+      </Typography>
+
+      {/* Leave Records Section */}
       <Grid
         container
         alignItems="center"
@@ -179,45 +186,28 @@ function UserInfo() {
           <Typography variant="h5" fontWeight="bold">
             Leave Records
           </Typography>
-          {/* 👇 Year Buttons beside title */}
-          <Button
-            variant={selectedYear === currentYear ? "contained" : "outlined"}
-            sx={{
-              textTransform: "none",
-              backgroundColor:
-                selectedYear === currentYear ? "#1976d2" : "transparent",
-              color: selectedYear === currentYear ? "white" : "black",
-              minWidth: "80px",
-            }}
-            onClick={() => setSelectedYear(currentYear)}
-            disabled={loadingYear}
-          >
-            {loadingYear && selectedYear === currentYear ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              currentYear
-            )}
-          </Button>
-          <Button
-            variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
-            sx={{
-              textTransform: "none",
-              backgroundColor:
-                selectedYear === currentYear - 1 ? "#1976d2" : "transparent",
-              color: selectedYear === currentYear - 1 ? "white" : "black",
-              minWidth: "80px",
-            }}
-            onClick={() => setSelectedYear(currentYear - 1)}
-            disabled={loadingYear}
-          >
-            {loadingYear && selectedYear === currentYear - 1 ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              currentYear - 1
-            )}
-          </Button>
+
+          {/* Year Selection */}
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {[selectedYear, selectedYear - 1].map((year) => (
+              <Button
+                key={year}
+                variant={selectedYear === year ? "contained" : "outlined"}
+                onClick={() => setSelectedYear(year)}
+                disabled={loading && selectedYear === year}
+                sx={{ textTransform: "none" }}
+              >
+                {loading && selectedYear === year ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  year
+                )}
+              </Button>
+            ))}
+          </Box>
         </Box>
 
+        {/* Filters + New Leave */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <FormGroup row>
             {leaveTypes.map((type, index) => (
@@ -247,11 +237,21 @@ function UserInfo() {
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
             <TableRow>
-              <TableCell><b>Leave Type</b></TableCell>
-              <TableCell><b>Start Date</b></TableCell>
-              <TableCell><b>End Date</b></TableCell>
-              <TableCell><b>Days Deducted</b></TableCell>
-              <TableCell><b>Remaining Balance</b></TableCell>
+              <TableCell>
+                <b>Leave Type</b>
+              </TableCell>
+              <TableCell>
+                <b>Start Date</b>
+              </TableCell>
+              <TableCell>
+                <b>End Date</b>
+              </TableCell>
+              <TableCell>
+                <b>Days Deducted</b>
+              </TableCell>
+              <TableCell>
+                <b>Remaining Balance</b>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
