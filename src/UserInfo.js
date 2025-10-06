@@ -142,7 +142,7 @@ function UserInfo() {
   ]);
 
   // ✅ this will now work
-  doc.autoTable({
+  autoTable(doc, {
     head: [["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"]],
     body: tableData,
     startY: 55,
