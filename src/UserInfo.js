@@ -37,14 +37,15 @@ function UserInfo() {
   const [remainingBalance, setRemainingBalance] = useState(null);
   const [annualAllowance, setAnnualAllowance] = useState(null);
   const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
-  const [selectedYear, setSelectedYear] = useState("current"); // 👈 new year state
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear); // 👈 default actual year
 
   useEffect(() => {
     if (accounts.length > 0) {
       fetchData(selectedYear);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accounts, selectedYear]); // 👈 re-fetch on year change
+  }, [accounts, selectedYear]);
 
   const fetchData = (year) => {
     const account = accounts[0];
@@ -55,7 +56,7 @@ function UserInfo() {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oid, year }), // 👈 send selected year to Logic App
+        body: JSON.stringify({ oid, year }), // 👈 send numeric year
       }
     )
       .then((res) => res.json())
@@ -63,19 +64,16 @@ function UserInfo() {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
 
-          // Extract annual allowance from hidden row
           const yearlyRow = parsedLeaves.find(
             (l) => l["Absence Description"] === "Yearly Entitlement Balance"
           );
           setAnnualAllowance(yearlyRow?.["Remaining Balance"] || 0);
 
-          // Filter visible rows
           const filtered = parsedLeaves.filter(
             (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
           );
           setLeaves(filtered);
 
-          // Remaining balance from last record
           const lastBalance =
             filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
           setRemainingBalance(lastBalance);
@@ -192,28 +190,28 @@ function UserInfo() {
             ))}
           </FormGroup>
 
-          {/* 👇 Year Selection Buttons */}
+          {/* 👇 Year Selection Buttons (actual years) */}
           <Button
-            variant={selectedYear === "current" ? "contained" : "outlined"}
+            variant={selectedYear === currentYear ? "contained" : "outlined"}
             sx={{
               textTransform: "none",
-              backgroundColor: selectedYear === "current" ? "#1976d2" : "transparent",
-              color: selectedYear === "current" ? "white" : "black",
+              backgroundColor: selectedYear === currentYear ? "#1976d2" : "transparent",
+              color: selectedYear === currentYear ? "white" : "black",
             }}
-            onClick={() => setSelectedYear("current")}
+            onClick={() => setSelectedYear(currentYear)}
           >
-            Current Year
+            {currentYear}
           </Button>
           <Button
-            variant={selectedYear === "last" ? "contained" : "outlined"}
+            variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
             sx={{
               textTransform: "none",
-              backgroundColor: selectedYear === "last" ? "#1976d2" : "transparent",
-              color: selectedYear === "last" ? "white" : "black",
+              backgroundColor: selectedYear === currentYear - 1 ? "#1976d2" : "transparent",
+              color: selectedYear === currentYear - 1 ? "white" : "black",
             }}
-            onClick={() => setSelectedYear("last")}
+            onClick={() => setSelectedYear(currentYear - 1)}
           >
-            Last Year
+            {currentYear - 1}
           </Button>
 
           <Button
