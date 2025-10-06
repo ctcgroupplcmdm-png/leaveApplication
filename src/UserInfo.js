@@ -120,39 +120,41 @@ function UserInfo() {
   };
 
   const generatePDF = () => {
-    if (!leaves.length) {
-      alert("No leave data to export.");
-      return;
-    }
+  if (!leaves.length) {
+    alert("No leave data to export.");
+    return;
+  }
 
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(
-      `${userData.companyName} - Leave Report (${selectedYear})`,
-      14,
-      20
-    );
-    doc.setFontSize(12);
-    doc.text(`Employee: ${userData.name}`, 14, 30);
-    doc.text(`Employee ID: ${userData.employeeId}`, 14, 38);
-    doc.text(`Phone: ${userData.phone}`, 14, 46);
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text(
+    `${userData.companyName} - Leave Report (${selectedYear})`,
+    14,
+    20
+  );
+  doc.setFontSize(12);
+  doc.text(`Employee: ${userData.name}`, 14, 30);
+  doc.text(`Employee ID: ${userData.employeeId}`, 14, 38);
+  doc.text(`Phone: ${userData.phone}`, 14, 46);
 
-    const tableData = leaves.map((leave) => [
-      leave["Absence Description"],
-      leave["Start Date"],
-      leave["End Date"],
-      leave["Annual Leave Deduction"],
-      leave["Remaining Balance"],
-    ]);
+  const tableData = leaves.map((leave) => [
+    leave["Absence Description"],
+    leave["Start Date"],
+    leave["End Date"],
+    leave["Annual Leave Deduction"],
+    leave["Remaining Balance"],
+  ]);
 
-    doc.autoTable({
-      head: [["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"]],
-      body: tableData,
-      startY: 55,
-    });
+  doc.autoTable({
+    head: [["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"]],
+    body: tableData,
+    startY: 55,
+    theme: "grid",
+  });
 
-    doc.save(`${userData.companyName}_Leave_Report_${selectedYear}.pdf`);
-  };
+  doc.save(`${userData.companyName}_Leave_Report_${selectedYear}.pdf`);
+};
+
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
