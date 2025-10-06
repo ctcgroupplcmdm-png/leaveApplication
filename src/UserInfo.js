@@ -21,7 +21,7 @@ import {
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// ✅ Company logos mapping
+// ✅ Map company names to logo filenames
 const companyLogos = {
   "Argosy Trading Company Ltd": "argosy.png",
   "Cyprus Trading Corporation Plc": "ctc.png",
@@ -43,7 +43,6 @@ function UserInfo() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
 
-  // 🟢 Fetch leave data
   const fetchLeaveData = (oid, year) => {
     setLoading(true);
     fetch(
@@ -59,50 +58,37 @@ function UserInfo() {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
 
-          // Remove "Yearly Entitlement Balance" from visible table
+          // Skip the "Yearly Entitlement Balance" row
           const filtered = parsedLeaves.filter(
             (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
           );
           setLeaves(filtered);
 
-          // Take annual allowance from hidden row (first entry)
-          const allowance =
-            parsedLeaves[0]?.["Remaining Balance"] || 0;
           const lastBalance =
             filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
           setRemainingBalance(lastBalance);
-
-          setUserData((prev) => ({
-            ...prev,
-            annualAllowance: allowance,
-            displayName: data.displayName,
-            employeeId: data.employeeId,
-            phone: data.mobilePhone,
-            companyName: data.companyName || "Company",
-          }));
         }
+
+        setUserData({
+          name: data.displayName,
+          employeeId: data.employeeId,
+          phone: data.mobilePhone,
+          companyName: data.companyName || "Company",
+        });
       })
       .catch((err) => console.error("Error fetching Logic App data:", err))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-  if (accounts.length > 0) {
-    const account = accounts[0];
-    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-    fetchLeaveData(oid, selectedYear);
-  }
-}, [accounts, selectedYear]);
-
+    if (accounts.length > 0) {
+      const account = accounts[0];
+      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+      fetchLeaveData(oid, selectedYear);
+    }
+  }, [accounts, selectedYear]);
 
   if (!userData) return <Typography>Loading user data...</Typography>;
-
-  // 🟩 Filter leaves
-  const filteredLeaves = leaves.filter((leave) =>
-    selectedTypes.includes(leave["Absence Description"])
-  );
-
-  const leaveTypes = [...new Set(leaves.map((l) => l["Absence Description"]))];
 
   const handleTypeChange = (type) => {
     setSelectedTypes((prev) =>
@@ -112,15 +98,12 @@ function UserInfo() {
     );
   };
 
-  const handleYearChange = (year) => {
-    if (accounts.length > 0) {
-      const oid = accounts[0].idTokenClaims?.oid || accounts[0].idTokenClaims?.sub;
-      setSelectedYear(year);
-      fetchLeaveData(oid, year);
-    }
-  };
+  const filteredLeaves = leaves.filter((leave) =>
+    selectedTypes.includes(leave["Absence Description"])
+  );
 
-  // 🟦 Row colors by leave type
+  const leaveTypes = [...new Set(leaves.map((l) => l["Absence Description"]))];
+
   const getRowColor = (type) => {
     switch (type) {
       case "Annual Leave":
@@ -136,46 +119,44 @@ function UserInfo() {
 
   const logout = () => instance.logoutRedirect();
 
-  // 📄 Generate PDF
-  const generatePDF = () => {
-    if (!leaves.length) {
-      alert("No leave data to export.");
-      return;
-    }
-
+  // 🧾 Export to PDF
+  const exportToPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text(`${userData.companyName} - Leave Report (${selectedYear})`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Employee: ${userData.displayName}`, 14, 30);
-    doc.text(`Employee ID: ${userData.employeeId}`, 14, 38);
-    doc.text(`Phone: ${userData.phone}`, 14, 46);
-    doc.text(`Annual Allowance: ${userData.annualAllowance}`, 14, 54);
-    doc.text(`Remaining Balance: ${remainingBalance}`, 14, 62);
+    doc.text(
+      `${userData.companyName} - Leave Records (${selectedYear})`,
+      14,
+      15
+    );
 
-    const tableData = leaves.map((leave) => [
-      leave["Absence Description"],
-      leave["Start Date"],
-      leave["End Date"],
-      leave["Annual Leave Deduction"],
-      leave["Remaining Balance"],
-    ]);
-
-    // ✅ New API usage
     autoTable(doc, {
-      head: [["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"]],
-      body: tableData,
-      startY: 70,
-      theme: "grid",
+      startY: 25,
+      head: [["Type", "Start", "End", "Days", "Remaining"]],
+      body: filteredLeaves.map((l) => [
+        l["Absence Description"],
+        l["Start Date"],
+        l["End Date"],
+        l["Annual Leave Deduction"],
+        l["Remaining Balance"],
+      ]),
     });
 
-    doc.save(`${userData.companyName}_Leave_Report_${selectedYear}.pdf`);
+    doc.save(`Leave_Records_${selectedYear}.pdf`);
   };
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       {/* Top Bar */}
-      <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+      <Grid
+        container
+        spacing={2}
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: 3 }}
+      >
+        {/* Logo + Company Name */}
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
             <img
@@ -189,9 +170,10 @@ function UserInfo() {
           </Typography>
         </Grid>
 
+        {/* Stats + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
-            label={`${userData.annualAllowance || 0} Annual Allowance`}
+            label={`${leaves[0]?.["Remaining Balance"] || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
@@ -205,85 +187,117 @@ function UserInfo() {
         </Grid>
       </Grid>
 
-      {/* Welcome Header */}
+      {/* Welcome */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Welcome {userData.displayName}
+        Welcome {userData.name}
       </Typography>
       <Typography variant="subtitle1" color="text.secondary" gutterBottom>
         Employee ID: {userData.employeeId}
       </Typography>
 
-      {/* Leave Records Header */}
-      <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
-        <Typography variant="h5" fontWeight="bold">
-          Leave Records ({selectedYear})
-        </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      {/* Leave Section Header */}
+      <Grid
+        container
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mt: 4, mb: 2 }}
+      >
+        <Grid item sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Typography variant="h5" fontWeight="bold">
+            Leave Records
+          </Typography>
           <Button
-            variant={selectedYear === new Date().getFullYear() ? "contained" : "outlined"}
-            onClick={() => handleYearChange(new Date().getFullYear())}
+            variant={selectedYear === currentYear ? "contained" : "outlined"}
+            onClick={() => setSelectedYear(currentYear)}
             disabled={loading}
           >
-            {loading && selectedYear === new Date().getFullYear() ? (
-              <CircularProgress size={20} sx={{ color: "white", mr: 1 }} />
-            ) : null}
-            Current Year
+            {loading && selectedYear === currentYear ? (
+              <CircularProgress size={18} />
+            ) : (
+              currentYear
+            )}
           </Button>
           <Button
-            variant={selectedYear === new Date().getFullYear() - 1 ? "contained" : "outlined"}
-            onClick={() => handleYearChange(new Date().getFullYear() - 1)}
+            variant={
+              selectedYear === currentYear - 1 ? "contained" : "outlined"
+            }
+            onClick={() => setSelectedYear(currentYear - 1)}
             disabled={loading}
           >
-            {loading && selectedYear === new Date().getFullYear() - 1 ? (
-              <CircularProgress size={20} sx={{ color: "white", mr: 1 }} />
-            ) : null}
-            Previous Year
+            {loading && selectedYear === currentYear - 1 ? (
+              <CircularProgress size={18} />
+            ) : (
+              currentYear - 1
+            )}
           </Button>
-          <Button variant="contained" color="success" onClick={generatePDF}>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={exportToPDF}
+            sx={{ ml: 2 }}
+          >
             Save as PDF
           </Button>
-        </Box>
-      </Grid>
+        </Grid>
 
-      {/* Filters + New Request */}
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-        <FormGroup row>
-          {leaveTypes.map((type, index) => (
-            <FormControlLabel
-              key={index}
-              control={
-                <Checkbox
-                  checked={selectedTypes.includes(type)}
-                  onChange={() => handleTypeChange(type)}
-                />
-              }
-              label={type}
-            />
-          ))}
-        </FormGroup>
-        <Button
-          variant="contained"
-          sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
+        {/* Filters + New Leave */}
+        <Grid
+          item
+          sx={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}
         >
-          + New Leave Request
-        </Button>
-      </Box>
+          <FormGroup row>
+            {leaveTypes.map((type, index) => (
+              <FormControlLabel
+                key={index}
+                control={
+                  <Checkbox
+                    checked={selectedTypes.includes(type)}
+                    onChange={() => handleTypeChange(type)}
+                  />
+                }
+                label={type}
+              />
+            ))}
+          </FormGroup>
+          <Button
+            variant="contained"
+            sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
+          >
+            + New Leave Request
+          </Button>
+        </Grid>
+      </Grid>
 
       {/* Leave Table */}
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
             <TableRow>
-              <TableCell><b>Leave Type</b></TableCell>
-              <TableCell><b>Start Date</b></TableCell>
-              <TableCell><b>End Date</b></TableCell>
-              <TableCell><b>Days Deducted</b></TableCell>
-              <TableCell><b>Remaining Balance</b></TableCell>
+              <TableCell>
+                <b>Leave Type</b>
+              </TableCell>
+              <TableCell>
+                <b>Start Date</b>
+              </TableCell>
+              <TableCell>
+                <b>End Date</b>
+              </TableCell>
+              <TableCell>
+                <b>Days Deducted</b>
+              </TableCell>
+              <TableCell>
+                <b>Remaining Balance</b>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredLeaves.map((leave, index) => (
-              <TableRow key={index} sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}>
+              <TableRow
+                key={index}
+                sx={{
+                  backgroundColor: getRowColor(leave["Absence Description"]),
+                }}
+              >
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
                 <TableCell>{leave["End Date"]}</TableCell>
