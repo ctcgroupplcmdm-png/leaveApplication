@@ -16,6 +16,7 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  CircularProgress,
 } from "@mui/material";
 
 const companyLogos = {
@@ -36,9 +37,10 @@ function UserInfo() {
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
   const [annualAllowance, setAnnualAllowance] = useState(null);
-  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
+  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]);
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear); // 👈 default actual year
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [loadingYear, setLoadingYear] = useState(false);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -47,46 +49,51 @@ function UserInfo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts, selectedYear]);
 
-  const fetchData = (year) => {
-    const account = accounts[0];
-    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+  const fetchData = async (year) => {
+    try {
+      setLoadingYear(true);
+      const account = accounts[0];
+      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
-    fetch(
-      "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oid, year }), // 👈 send numeric year
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.leavesTaken) {
-          const parsedLeaves = JSON.parse(data.leavesTaken);
-
-          const yearlyRow = parsedLeaves.find(
-            (l) => l["Absence Description"] === "Yearly Entitlement Balance"
-          );
-          setAnnualAllowance(yearlyRow?.["Remaining Balance"] || 0);
-
-          const filtered = parsedLeaves.filter(
-            (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
-          );
-          setLeaves(filtered);
-
-          const lastBalance =
-            filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
-          setRemainingBalance(lastBalance);
+      const res = await fetch(
+        "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oid, year }),
         }
+      );
 
-        setUserData({
-          name: data.displayName,
-          employeeId: data.employeeId,
-          phone: data.mobilePhone,
-          companyName: data.companyName || "Company",
-        });
-      })
-      .catch((err) => console.error("Error fetching Logic App data:", err));
+      const data = await res.json();
+
+      if (data.leavesTaken) {
+        const parsedLeaves = JSON.parse(data.leavesTaken);
+        const yearlyRow = parsedLeaves.find(
+          (l) => l["Absence Description"] === "Yearly Entitlement Balance"
+        );
+        setAnnualAllowance(yearlyRow?.["Remaining Balance"] || 0);
+
+        const filtered = parsedLeaves.filter(
+          (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
+        );
+        setLeaves(filtered);
+
+        const lastBalance =
+          filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
+        setRemainingBalance(lastBalance);
+      }
+
+      setUserData({
+        name: data.displayName,
+        employeeId: data.employeeId,
+        phone: data.mobilePhone,
+        companyName: data.companyName || "Company",
+      });
+    } catch (err) {
+      console.error("Error fetching Logic App data:", err);
+    } finally {
+      setLoadingYear(false);
+    }
   };
 
   if (!userData) return <Typography>Loading user data...</Typography>;
@@ -161,19 +168,56 @@ function UserInfo() {
         </Grid>
       </Grid>
 
-      {/* Welcome Header */}
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Welcome {userData.name}
-      </Typography>
-      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-        Employee ID: {userData.employeeId}
-      </Typography>
+      {/* Header with Year Buttons + Filters */}
+      <Grid
+        container
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mt: 4, mb: 2 }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Typography variant="h5" fontWeight="bold">
+            Leave Records
+          </Typography>
+          {/* 👇 Year Buttons beside title */}
+          <Button
+            variant={selectedYear === currentYear ? "contained" : "outlined"}
+            sx={{
+              textTransform: "none",
+              backgroundColor:
+                selectedYear === currentYear ? "#1976d2" : "transparent",
+              color: selectedYear === currentYear ? "white" : "black",
+              minWidth: "80px",
+            }}
+            onClick={() => setSelectedYear(currentYear)}
+            disabled={loadingYear}
+          >
+            {loadingYear && selectedYear === currentYear ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              currentYear
+            )}
+          </Button>
+          <Button
+            variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
+            sx={{
+              textTransform: "none",
+              backgroundColor:
+                selectedYear === currentYear - 1 ? "#1976d2" : "transparent",
+              color: selectedYear === currentYear - 1 ? "white" : "black",
+              minWidth: "80px",
+            }}
+            onClick={() => setSelectedYear(currentYear - 1)}
+            disabled={loadingYear}
+          >
+            {loadingYear && selectedYear === currentYear - 1 ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              currentYear - 1
+            )}
+          </Button>
+        </Box>
 
-      {/* Leave Records + Filters + Year Buttons */}
-      <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
-        <Typography variant="h5" fontWeight="bold">
-          Leave Records
-        </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <FormGroup row>
             {leaveTypes.map((type, index) => (
@@ -189,31 +233,6 @@ function UserInfo() {
               />
             ))}
           </FormGroup>
-
-          {/* 👇 Year Selection Buttons (actual years) */}
-          <Button
-            variant={selectedYear === currentYear ? "contained" : "outlined"}
-            sx={{
-              textTransform: "none",
-              backgroundColor: selectedYear === currentYear ? "#1976d2" : "transparent",
-              color: selectedYear === currentYear ? "white" : "black",
-            }}
-            onClick={() => setSelectedYear(currentYear)}
-          >
-            {currentYear}
-          </Button>
-          <Button
-            variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
-            sx={{
-              textTransform: "none",
-              backgroundColor: selectedYear === currentYear - 1 ? "#1976d2" : "transparent",
-              color: selectedYear === currentYear - 1 ? "white" : "black",
-            }}
-            onClick={() => setSelectedYear(currentYear - 1)}
-          >
-            {currentYear - 1}
-          </Button>
-
           <Button
             variant="contained"
             sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
@@ -239,7 +258,9 @@ function UserInfo() {
             {filteredLeaves.map((leave, index) => (
               <TableRow
                 key={index}
-                sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}
+                sx={{
+                  backgroundColor: getRowColor(leave["Absence Description"]),
+                }}
               >
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
