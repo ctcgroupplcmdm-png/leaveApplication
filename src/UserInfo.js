@@ -46,6 +46,7 @@ function UserInfo() {
 
   if (accounts.length === 0) return <p>Not signed in</p>;
 
+  // Filter leave types
   const filteredLeaves =
     filterType === "All"
       ? leaves
@@ -56,47 +57,40 @@ function UserInfo() {
   const daysRemaining = leaves[leaves.length - 1]?.["Remaining Balance"] || 0;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
+    <div style={{ fontFamily: "Arial", margin: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <h2 style={styles.title}>Welcome, {displayName}</h2>
-          <p style={styles.info}><b>Employee ID:</b> {employeeId}</p>
-<p style={styles.info}><b>Object ID:</b> {objectId}</p>
-<p style={styles.info}><b>Phone:</b> {phone}</p>
-
+          <h2>Welcome {displayName}</h2>
+          <p><b>Employee ID:</b> {employeeId}</p>
+          <p><b>Phone:</b> {phone}</p>
         </div>
-        <button style={styles.logoutButton} onClick={logout}>
-          Logout
-        </button>
-      </div>
-
-      <div style={styles.summaryRow}>
-        <div style={styles.card}>
-          <p style={styles.cardLabel}>Annual Allowance</p>
-          <h3 style={styles.cardValue}>{annualAllowance}</h3>
-        </div>
-        <div style={styles.card}>
-          <p style={styles.cardLabel}>Days Remaining</p>
-          <h3 style={styles.cardValue}>{daysRemaining}</h3>
+        <div>
+          <button onClick={logout}>Logout</button>
         </div>
       </div>
 
-      <div style={styles.filterRow}>
-        <h3>Leave Records</h3>
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          style={styles.dropdown}
-        >
+      <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+        <div style={{ background: "#f1f1f1", padding: "10px", borderRadius: "8px" }}>
+          <b>{annualAllowance}</b> Annual Allowance
+        </div>
+        <div style={{ background: "#f1f1f1", padding: "10px", borderRadius: "8px" }}>
+          <b>{daysRemaining}</b> Leave Days Remaining
+        </div>
+      </div>
+
+      <h3 style={{ marginTop: "30px" }}>Leave Records</h3>
+      <div>
+        <label>Filter by type: </label>
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
           {leaveTypes.map((t, i) => (
             <option key={i}>{t}</option>
           ))}
         </select>
       </div>
 
-      <table style={styles.table}>
+      <table style={{ width: "100%", marginTop: "15px", borderCollapse: "collapse" }}>
         <thead>
-          <tr>
+          <tr style={{ background: "#f9f9f9" }}>
             <th>Leave Type</th>
             <th>Start Date</th>
             <th>End Date</th>
@@ -106,7 +100,7 @@ function UserInfo() {
         </thead>
         <tbody>
           {filteredLeaves.map((leave, i) => (
-            <tr key={i} style={styles.tableRow}>
+            <tr key={i} style={{ textAlign: "center", borderBottom: "1px solid #ddd" }}>
               <td>{leave["Absence Description"]}</td>
               <td>{leave["Start Date"]}</td>
               <td>{leave["End Date"]}</td>
@@ -119,70 +113,5 @@ function UserInfo() {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    fontFamily: "Inter, Arial, sans-serif",
-    maxWidth: "900px",
-    margin: "40px auto",
-    backgroundColor: "#fff",
-    borderRadius: "16px",
-    padding: "30px 40px",
-    boxShadow: "0 4px 25px rgba(0,0,0,0.1)",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px",
-  },
-  title: { fontSize: "24px", marginBottom: "5px" },
-  info: { color: "#555", margin: "3px 0" },
-  logoutButton: {
-    backgroundColor: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 20px",
-    cursor: "pointer",
-    fontWeight: "500",
-    transition: "0.2s",
-  },
-  summaryRow: {
-    display: "flex",
-    gap: "20px",
-    marginTop: "10px",
-  },
-  card: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-    borderRadius: "12px",
-    padding: "20px",
-    textAlign: "center",
-  },
-  cardLabel: { color: "#6b7280", fontSize: "14px" },
-  cardValue: { fontSize: "28px", color: "#2563eb", margin: "8px 0" },
-  filterRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "30px",
-  },
-  dropdown: {
-    padding: "8px 12px",
-    borderRadius: "6px",
-    border: "1px solid #d1d5db",
-    fontSize: "14px",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    marginTop: "15px",
-  },
-  tableRow: {
-    textAlign: "center",
-    borderBottom: "1px solid #e5e7eb",
-  },
-};
 
 export default UserInfo;
