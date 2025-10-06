@@ -37,53 +37,59 @@ function UserInfo() {
   const [remainingBalance, setRemainingBalance] = useState(null);
   const [annualAllowance, setAnnualAllowance] = useState(null);
   const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
+  const [selectedYear, setSelectedYear] = useState("current"); // 👈 new year state
 
   useEffect(() => {
     if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-
-      fetch(
-        "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ oid }),
-        }
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.leavesTaken) {
-            const parsedLeaves = JSON.parse(data.leavesTaken);
-
-            // Find hidden "Yearly Entitlement Balance" row
-            const yearlyRow = parsedLeaves.find(
-              (l) => l["Absence Description"] === "Yearly Entitlement Balance"
-            );
-            setAnnualAllowance(yearlyRow?.["Remaining Balance"] || 0);
-
-            // Exclude hidden row from display table
-            const filtered = parsedLeaves.filter(
-              (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
-            );
-            setLeaves(filtered);
-
-            // Remaining balance from last record (displayed)
-            const lastBalance =
-              filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
-            setRemainingBalance(lastBalance);
-          }
-
-          setUserData({
-            name: data.displayName,
-            employeeId: data.employeeId,
-            phone: data.mobilePhone,
-            companyName: data.companyName || "Company",
-          });
-        })
-        .catch((err) => console.error("Error fetching Logic App data:", err));
+      fetchData(selectedYear);
     }
-  }, [accounts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accounts, selectedYear]); // 👈 re-fetch on year change
+
+  const fetchData = (year) => {
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+
+    fetch(
+      "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oid, year }), // 👈 send selected year to Logic App
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.leavesTaken) {
+          const parsedLeaves = JSON.parse(data.leavesTaken);
+
+          // Extract annual allowance from hidden row
+          const yearlyRow = parsedLeaves.find(
+            (l) => l["Absence Description"] === "Yearly Entitlement Balance"
+          );
+          setAnnualAllowance(yearlyRow?.["Remaining Balance"] || 0);
+
+          // Filter visible rows
+          const filtered = parsedLeaves.filter(
+            (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
+          );
+          setLeaves(filtered);
+
+          // Remaining balance from last record
+          const lastBalance =
+            filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
+          setRemainingBalance(lastBalance);
+        }
+
+        setUserData({
+          name: data.displayName,
+          employeeId: data.employeeId,
+          phone: data.mobilePhone,
+          companyName: data.companyName || "Company",
+        });
+      })
+      .catch((err) => console.error("Error fetching Logic App data:", err));
+  };
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
@@ -118,6 +124,7 @@ function UserInfo() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+      {/* Top Bar */}
       <Grid
         container
         spacing={2}
@@ -131,7 +138,7 @@ function UserInfo() {
             <img
               src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
               alt={userData.companyName}
-              style={{ width: 60, height: 60, objectFit: "contain" }} // ⬆️ Bigger logo
+              style={{ width: 60, height: 60, objectFit: "contain" }}
             />
           )}
           <Typography variant="h6" fontWeight="bold">
@@ -156,6 +163,7 @@ function UserInfo() {
         </Grid>
       </Grid>
 
+      {/* Welcome Header */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Welcome {userData.name}
       </Typography>
@@ -163,7 +171,7 @@ function UserInfo() {
         Employee ID: {userData.employeeId}
       </Typography>
 
-      {/* Leave Records + Filters */}
+      {/* Leave Records + Filters + Year Buttons */}
       <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
         <Typography variant="h5" fontWeight="bold">
           Leave Records
@@ -183,6 +191,31 @@ function UserInfo() {
               />
             ))}
           </FormGroup>
+
+          {/* 👇 Year Selection Buttons */}
+          <Button
+            variant={selectedYear === "current" ? "contained" : "outlined"}
+            sx={{
+              textTransform: "none",
+              backgroundColor: selectedYear === "current" ? "#1976d2" : "transparent",
+              color: selectedYear === "current" ? "white" : "black",
+            }}
+            onClick={() => setSelectedYear("current")}
+          >
+            Current Year
+          </Button>
+          <Button
+            variant={selectedYear === "last" ? "contained" : "outlined"}
+            sx={{
+              textTransform: "none",
+              backgroundColor: selectedYear === "last" ? "#1976d2" : "transparent",
+              color: selectedYear === "last" ? "white" : "black",
+            }}
+            onClick={() => setSelectedYear("last")}
+          >
+            Last Year
+          </Button>
+
           <Button
             variant="contained"
             sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
@@ -192,6 +225,7 @@ function UserInfo() {
         </Box>
       </Grid>
 
+      {/* Leave Table */}
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
