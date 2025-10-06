@@ -87,12 +87,13 @@ function UserInfo() {
   };
 
   useEffect(() => {
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-      fetchLeaveData(oid, selectedYear);
-    }
-  }, [accounts]);
+  if (accounts.length > 0) {
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+    fetchLeaveData(oid, selectedYear);
+  }
+}, [accounts, selectedYear]);
+
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
