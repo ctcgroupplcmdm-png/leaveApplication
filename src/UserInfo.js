@@ -127,11 +127,7 @@ function UserInfo() {
 
   const doc = new jsPDF();
   doc.setFontSize(16);
-  doc.text(
-    `${userData.companyName} - Leave Report (${selectedYear})`,
-    14,
-    20
-  );
+  doc.text(`${userData.companyName} - Leave Report (${selectedYear})`, 14, 20);
   doc.setFontSize(12);
   doc.text(`Employee: ${userData.name}`, 14, 30);
   doc.text(`Employee ID: ${userData.employeeId}`, 14, 38);
@@ -145,6 +141,7 @@ function UserInfo() {
     leave["Remaining Balance"],
   ]);
 
+  // ✅ this will now work
   doc.autoTable({
     head: [["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"]],
     body: tableData,
@@ -154,6 +151,7 @@ function UserInfo() {
 
   doc.save(`${userData.companyName}_Leave_Report_${selectedYear}.pdf`);
 };
+
 
 
   if (!userData) return <Typography>Loading user data...</Typography>;
