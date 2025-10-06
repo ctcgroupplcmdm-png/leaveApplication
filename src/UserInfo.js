@@ -18,13 +18,25 @@ import {
   Checkbox,
 } from "@mui/material";
 
+// ✅ Map company names to logo filenames
+const companyLogos = {
+  "Argosy Trading Company Ltd": "argosy.png",
+  "Cyprus Trading Corporation Plc": "ctc.png",
+  "Artview Co. Ltd": "artview.png",
+  "CTC Automotive Ltd": "automotive.png",
+  "Cassandra Trading Ltd": "cassandra.png",
+  "Woolworth (Cyprus) Properties Plc": "wwl.png",
+  "Apex Ltd": "apex.png",
+  "N.K. Shacolas (Holdings) Ltd": "nks.png",
+  "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
+};
+
 function UserInfo() {
   const { instance, accounts } = useMsal();
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
-  const [annualAllowance, setAnnualAllowance] = useState(null);
-  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // ✅ preselect Annual Leave
+  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -43,20 +55,17 @@ function UserInfo() {
         .then((data) => {
           if (data.leavesTaken) {
             const parsedLeaves = JSON.parse(data.leavesTaken);
+            setLeaves(parsedLeaves);
 
-            // Remove the "Yearly Entitlement Balance" row
-            const filteredLeaves = parsedLeaves.filter(
+            // Skip the first "Yearly Entitlement Balance" row
+            const filtered = parsedLeaves.filter(
               (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
             );
-            setLeaves(filteredLeaves);
+            setLeaves(filtered);
 
-            // First entry = Annual Allowance
-            const firstBalance = parsedLeaves[0]?.["Remaining Balance"] || 0;
-            setAnnualAllowance(firstBalance);
-
-            // Last entry = Remaining Balance
+            // Remaining balance from last record
             const lastBalance =
-              parsedLeaves[parsedLeaves.length - 1]?.["Remaining Balance"] || 0;
+              filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
             setRemainingBalance(lastBalance);
           }
 
@@ -64,6 +73,7 @@ function UserInfo() {
             name: data.displayName,
             employeeId: data.employeeId,
             phone: data.mobilePhone,
+            companyName: data.companyName || "Company",
           });
         })
         .catch((err) => console.error("Error fetching Logic App data:", err));
@@ -72,14 +82,13 @@ function UserInfo() {
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
-  const logout = () => instance.logoutRedirect();
+  // 🟢 Filter leaves by selected types
+  const filteredLeaves = leaves.filter((leave) =>
+    selectedTypes.includes(leave["Absence Description"])
+  );
 
-  // Unique leave types (excluding "Yearly Entitlement Balance")
-  const leaveTypes = [
-    ...new Set(leaves.map((l) => l["Absence Description"])),
-  ];
+  const leaveTypes = [...new Set(leaves.map((l) => l["Absence Description"]))];
 
-  // Handle checkbox change
   const handleTypeChange = (type) => {
     setSelectedTypes((prev) =>
       prev.includes(type)
@@ -88,45 +97,57 @@ function UserInfo() {
     );
   };
 
-  // Apply filter
-  const filteredLeaves =
-    selectedTypes.length === 0
-      ? leaves
-      : leaves.filter((l) => selectedTypes.includes(l["Absence Description"]));
+  // 🟦 Color by leave type
+  const getRowColor = (type) => {
+    switch (type) {
+      case "Annual Leave":
+        return "#e3f2fd";
+      case "Sick Leave":
+        return "#fce4ec";
+      case "Maternity Leave":
+        return "#f3e5f5";
+      default:
+        return "#ffffff";
+    }
+  };
 
-  // Assign consistent color per leave type
-  const typeColors = {};
-  const palette = [
-    "#e3f2fd",
-    "#fce4ec",
-    "#f3e5f5",
-    "#e8f5e9",
-    "#fff3e0",
-    "#ede7f6",
-    "#f9fbe7",
-  ];
-  leaveTypes.forEach((type, i) => {
-    typeColors[type] = palette[i % palette.length];
-  });
+  const logout = () => instance.logoutRedirect();
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       {/* Top Bar */}
-      <Grid container spacing={2} justifyContent="flex-end" sx={{ mb: 3 }}>
-        <Grid item>
+      <Grid
+        container
+        spacing={2}
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: 3 }}
+      >
+        {/* Logo + Company Name */}
+        <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {userData?.companyName && companyLogos[userData.companyName] && (
+            <img
+              src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
+              alt={userData.companyName}
+              style={{ width: 40, height: 40, objectFit: "contain" }}
+            />
+          )}
+          <Typography variant="h6" fontWeight="bold">
+            {userData.companyName}
+          </Typography>
+        </Grid>
+
+        {/* Stats + Logout */}
+        <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
-            label={`${annualAllowance || 0}  Annual Allowance`}
+            label={`${leaves[0]?.["Remaining Balance"] || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
-        </Grid>
-        <Grid item>
           <Chip
-            label={`${remainingBalance || 0}  Leave Days Remaining`}
+            label={`${remainingBalance || 0} Leave Days Remaining`}
             color="primary"
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
-        </Grid>
-        <Grid item>
           <Button variant="outlined" color="error" onClick={logout}>
             Logout
           </Button>
@@ -142,34 +163,35 @@ function UserInfo() {
       </Typography>
 
       {/* Leave Records Section */}
-      <Typography variant="h5" fontWeight="bold" sx={{ mt: 4, mb: 2 }}>
-        Leave Records
-      </Typography>
+      <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
+        <Typography variant="h5" fontWeight="bold">
+          Leave Records
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <FormGroup row>
+            {leaveTypes.map((type, index) => (
+              <FormControlLabel
+                key={index}
+                control={
+                  <Checkbox
+                    checked={selectedTypes.includes(type)}
+                    onChange={() => handleTypeChange(type)}
+                  />
+                }
+                label={type}
+              />
+            ))}
+          </FormGroup>
+          <Button
+            variant="contained"
+            sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
+          >
+            + New Leave Request
+          </Button>
+        </Box>
+      </Grid>
 
-      {/* Button + Filters inline */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 2 }}>
-        <Button
-          variant="contained"
-          sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
-        >
-          + New Leave Request
-        </Button>
-        <FormGroup row>
-          {leaveTypes.map((type, index) => (
-            <FormControlLabel
-              key={index}
-              control={
-                <Checkbox
-                  checked={selectedTypes.includes(type)}
-                  onChange={() => handleTypeChange(type)}
-                />
-              }
-              label={type}
-            />
-          ))}
-        </FormGroup>
-      </Box>
-
+      {/* Leave Table */}
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
@@ -185,9 +207,7 @@ function UserInfo() {
             {filteredLeaves.map((leave, index) => (
               <TableRow
                 key={index}
-                sx={{
-                  backgroundColor: typeColors[leave["Absence Description"]],
-                }}
+                sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}
               >
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
