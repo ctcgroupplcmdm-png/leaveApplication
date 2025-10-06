@@ -13,20 +13,25 @@ import {
   TableHead,
   TableRow,
   Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 function UserInfo() {
-  const { accounts } = useMsal();
+  const { instance, accounts } = useMsal();
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
+  const [annualAllowance, setAnnualAllowance] = useState(null);
+  const [filterType, setFilterType] = useState("All");
 
   useEffect(() => {
     if (accounts.length > 0) {
       const account = accounts[0];
       const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
-      // Call your Logic App
       fetch(
         "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
         {
@@ -41,7 +46,11 @@ function UserInfo() {
             const parsedLeaves = JSON.parse(data.leavesTaken);
             setLeaves(parsedLeaves);
 
-            // Get Remaining Balance from last record
+            // First entry = Annual Allowance
+            const firstBalance = parsedLeaves[0]?.["Remaining Balance"] || 0;
+            setAnnualAllowance(firstBalance);
+
+            // Last entry = Remaining Balance
             const lastBalance =
               parsedLeaves[parsedLeaves.length - 1]?.["Remaining Balance"] || 0;
             setRemainingBalance(lastBalance);
@@ -59,13 +68,21 @@ function UserInfo() {
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
+  const logout = () => instance.logoutRedirect();
+
+  const leaveTypes = ["All", ...new Set(leaves.map((l) => l["Absence Description"]))];
+  const filteredLeaves =
+    filterType === "All"
+      ? leaves
+      : leaves.filter((l) => l["Absence Description"] === filterType);
+
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       {/* Top Bar */}
       <Grid container spacing={2} justifyContent="flex-end" sx={{ mb: 3 }}>
         <Grid item>
           <Chip
-            label="20  Annual Allowance"
+            label={`${annualAllowance || 0}  Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
         </Grid>
@@ -77,7 +94,7 @@ function UserInfo() {
           />
         </Grid>
         <Grid item>
-          <Button variant="outlined" color="error">
+          <Button variant="outlined" color="error" onClick={logout}>
             Logout
           </Button>
         </Grid>
@@ -103,6 +120,22 @@ function UserInfo() {
         + New Leave Request
       </Button>
 
+      {/* Filter by leave type */}
+      <FormControl sx={{ mb: 2, minWidth: 200 }}>
+        <InputLabel>Filter by type</InputLabel>
+        <Select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          label="Filter by type"
+        >
+          {leaveTypes.map((type, index) => (
+            <MenuItem key={index} value={type}>
+              {type}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
@@ -115,7 +148,7 @@ function UserInfo() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {leaves.map((leave, index) => (
+            {filteredLeaves.map((leave, index) => (
               <TableRow key={index}>
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
