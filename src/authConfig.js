@@ -4,7 +4,7 @@ export const msalConfig = {
     authority: "https://ctcemployees.b2clogin.com/ctcemployees.onmicrosoft.com/B2C_1_Sign",
     knownAuthorities: ["ctcemployees.b2clogin.com"],
     redirectUri: "https://zealous-meadow-05ff82703.2.azurestaticapps.net/",
-    postLogoutRedirectUri: "https://zealous-meadow-05ff82703.2.azurestaticapps.net/"
+    postLogoutRedirectUri: "https://portal.ctcgroup.com/"
   }
 };
 
@@ -13,6 +13,7 @@ export const loginRequest = {
     "openid",
     "profile",
     "offline_access",
-    "https://graph.microsoft.com/User.ReadBasic.All"
+    "https://graph.microsoft.com/User.ReadBasic.All",
+	"https://cyprustrading.sharepoint.com/.default"
   ]
 };
