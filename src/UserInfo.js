@@ -18,6 +18,8 @@ import {
   Checkbox,
   CircularProgress,
 } from "@mui/material";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 // ✅ Map company names to logo filenames
 const companyLogos = {
@@ -38,7 +40,7 @@ function UserInfo() {
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
   const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear()); // Default: current year
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
 
   const fetchLeaveData = (oid, year) => {
@@ -56,11 +58,9 @@ function UserInfo() {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
 
-          // Find hidden row for allowance
           const allowanceRow = parsedLeaves.find(
             (l) => l["Absence Description"] === "Yearly Entitlement Balance"
           );
-
           const filtered = parsedLeaves.filter(
             (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
           );
@@ -126,6 +126,43 @@ function UserInfo() {
 
   const logout = () => instance.logoutRedirect();
 
+  // 🧾 Export to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(`${userData.companyName}`, 14, 15);
+    doc.setFontSize(12);
+    doc.text(`Employee: ${userData.name}`, 14, 25);
+    doc.text(`Employee ID: ${userData.employeeId}`, 14, 32);
+    doc.text(`Phone: ${userData.phone}`, 14, 39);
+    doc.text(`Year: ${selectedYear}`, 14, 46);
+    doc.text(
+      `Annual Allowance: ${userData.annualAllowance} | Remaining: ${remainingBalance}`,
+      14,
+      53
+    );
+
+    const tableData = filteredLeaves.map((leave) => [
+      leave["Absence Description"],
+      leave["Start Date"],
+      leave["End Date"],
+      leave["Annual Leave Deduction"],
+      leave["Remaining Balance"],
+    ]);
+
+    doc.autoTable({
+      startY: 60,
+      head: [
+        ["Leave Type", "Start Date", "End Date", "Days Deducted", "Remaining Balance"],
+      ],
+      body: tableData,
+      styles: { halign: "center" },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    doc.save(`Leave_Report_${selectedYear}.pdf`);
+  };
+
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       {/* Top Bar */}
@@ -187,7 +224,7 @@ function UserInfo() {
             Leave Records
           </Typography>
 
-          {/* Year Selection */}
+          {/* Year Buttons + Save PDF */}
           <Box sx={{ display: "flex", gap: 1 }}>
             {[selectedYear, selectedYear - 1].map((year) => (
               <Button
@@ -204,6 +241,14 @@ function UserInfo() {
                 )}
               </Button>
             ))}
+            <Button
+              variant="outlined"
+              color="success"
+              onClick={exportToPDF}
+              sx={{ textTransform: "none" }}
+            >
+              Save as PDF
+            </Button>
           </Box>
         </Box>
 
