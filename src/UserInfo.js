@@ -13,22 +13,31 @@ import {
   TableHead,
   TableRow,
   Chip,
-  FormGroup,
-  FormControlLabel,
   Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 
-// ✅ Map company names to logo filenames
-const companyLogos = {
-  "Argosy Trading Company Ltd": "argosy.png",
-  "Cyprus Trading Corporation Plc": "ctc.png",
-  "Artview Co. Ltd": "artview.png",
-  "CTC Automotive Ltd": "automotive.png",
-  "Cassandra Trading Ltd": "cassandra.png",
-  "Woolworth (Cyprus) Properties Plc": "wwl.png",
-  "Apex Ltd": "apex.png",
-  "N.K. Shacolas (Holdings) Ltd": "nks.png",
-  "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
+// Logo imports
+import argosyLogo from "./logos/argosy.png";
+import ctcLogo from "./logos/ctc.png";
+import artviewLogo from "./logos/artview.png";
+import automotiveLogo from "./logos/automotive.png";
+import cassandraLogo from "./logos/cassandra.png";
+import wwlLogo from "./logos/wwl.png";
+import apexLogo from "./logos/apex.png";
+import nksLogo from "./logos/nks.png";
+import limniLogo from "./logos/limni.png";
+
+const logoMap = {
+  "Argosy Trading Company Ltd": argosyLogo,
+  "Cyprus Trading Corporation Plc": ctcLogo,
+  "Artview Co. Ltd": artviewLogo,
+  "CTC Automotive Ltd": automotiveLogo,
+  "Cassandra Trading Ltd": cassandraLogo,
+  "Woolworth (Cyprus) Properties Plc": wwlLogo,
+  "Apex Ltd": apexLogo,
+  "N.K. Shacolas (Holdings) Ltd": nksLogo,
+  "Cyprus Limni Resorts & Golf Courses Plc": limniLogo,
 };
 
 function UserInfo() {
@@ -36,7 +45,7 @@ function UserInfo() {
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
-  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
+  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -54,18 +63,14 @@ function UserInfo() {
         .then((res) => res.json())
         .then((data) => {
           if (data.leavesTaken) {
-            const parsedLeaves = JSON.parse(data.leavesTaken);
+            const parsedLeaves = Array.isArray(data.leavesTaken)
+              ? data.leavesTaken
+              : JSON.parse(data.leavesTaken);
             setLeaves(parsedLeaves);
 
-            // Skip the first "Yearly Entitlement Balance" row
-            const filtered = parsedLeaves.filter(
-              (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
-            );
-            setLeaves(filtered);
-
-            // Remaining balance from last record
+            // ✅ Always take the *first row* for Annual Allowance (even if hidden)
             const lastBalance =
-              filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
+              parsedLeaves[parsedLeaves.length - 1]?.["Remaining Balance"] || 0;
             setRemainingBalance(lastBalance);
           }
 
@@ -73,23 +78,34 @@ function UserInfo() {
             name: data.displayName,
             employeeId: data.employeeId,
             phone: data.mobilePhone,
-            companyName: data.companyName || "Company",
+            companyName: data.companyName,
           });
         })
         .catch((err) => console.error("Error fetching Logic App data:", err));
     }
   }, [accounts]);
 
+  const logout = () => instance.logoutRedirect();
+
   if (!userData) return <Typography>Loading user data...</Typography>;
 
-  // 🟢 Filter leaves by selected types
-  const filteredLeaves = leaves.filter((leave) =>
-    selectedTypes.includes(leave["Absence Description"])
+  // Get all leave types (except "Yearly Entitlement Balance" if it exists)
+  const allLeaveTypes = [
+    ...new Set(
+      leaves
+        .filter((l) => l["Absence Description"] !== "Yearly Entitlement Balance")
+        .map((l) => l["Absence Description"])
+    ),
+  ];
+
+  // Filter out "Yearly Entitlement Balance" from the display
+  const filteredLeaves = leaves.filter(
+    (l) =>
+      l["Absence Description"] !== "Yearly Entitlement Balance" &&
+      selectedTypes.includes(l["Absence Description"])
   );
 
-  const leaveTypes = [...new Set(leaves.map((l) => l["Absence Description"]))];
-
-  const handleTypeChange = (type) => {
+  const toggleLeaveType = (type) => {
     setSelectedTypes((prev) =>
       prev.includes(type)
         ? prev.filter((t) => t !== type)
@@ -97,50 +113,35 @@ function UserInfo() {
     );
   };
 
-  // 🟦 Color by leave type
-  const getRowColor = (type) => {
-    switch (type) {
-      case "Annual Leave":
-        return "#e3f2fd";
-      case "Sick Leave":
-        return "#fce4ec";
-      case "Maternity Leave":
-        return "#f3e5f5";
-      default:
-        return "#ffffff";
-    }
-  };
+  // ✅ Always pull Annual Allowance from the *first record in the full list*
+  const annualAllowance = leaves[0]?.["Remaining Balance"] || 0;
+  const logo = logoMap[userData.companyName] || ctcLogo;
 
-  const logout = () => instance.logoutRedirect();
+  const colorMap = {
+    "Annual Leave": "#e3f2fd",
+    "Sick Leave": "#fce4ec",
+    "Maternity Leave": "#e8f5e9",
+    "Unpaid Leave": "#fff3e0",
+  };
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* Top Bar */}
-      <Grid
-        container
-        spacing={2}
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 3 }}
-      >
-        {/* Logo + Company Name */}
-        <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {userData?.companyName && companyLogos[userData.companyName] && (
-            <img
-              src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
-              alt={userData.companyName}
-              style={{ width: 40, height: 40, objectFit: "contain" }}
-            />
-          )}
-          <Typography variant="h6" fontWeight="bold">
+      {/* Top Row with Logo */}
+      <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Grid item sx={{ display: "flex", alignItems: "center" }}>
+          <img
+            src={logo}
+            alt="Company Logo"
+            style={{ height: 70, width: "auto", marginRight: 15 }}
+          />
+          <Typography variant="h5" fontWeight="bold">
             {userData.companyName}
           </Typography>
         </Grid>
 
-        {/* Stats + Logout */}
-        <Grid item sx={{ display: "flex", gap: 2 }}>
+        <Grid item sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           <Chip
-            label={`${leaves[0]?.["Remaining Balance"] || 0} Annual Allowance`}
+            label={`${annualAllowance} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
@@ -154,7 +155,7 @@ function UserInfo() {
         </Grid>
       </Grid>
 
-      {/* Welcome Header */}
+      {/* Welcome Section */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Welcome {userData.name}
       </Typography>
@@ -162,26 +163,29 @@ function UserInfo() {
         Employee ID: {userData.employeeId}
       </Typography>
 
-      {/* Leave Records Section */}
-      <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
+      {/* Leave Records Header + Filters */}
+      <Grid
+        container
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mt: 4, mb: 2 }}
+      >
         <Typography variant="h5" fontWeight="bold">
           Leave Records
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <FormGroup row>
-            {leaveTypes.map((type, index) => (
-              <FormControlLabel
-                key={index}
-                control={
-                  <Checkbox
-                    checked={selectedTypes.includes(type)}
-                    onChange={() => handleTypeChange(type)}
-                  />
-                }
-                label={type}
-              />
-            ))}
-          </FormGroup>
+          {allLeaveTypes.map((type, i) => (
+            <FormControlLabel
+              key={i}
+              control={
+                <Checkbox
+                  checked={selectedTypes.includes(type)}
+                  onChange={() => toggleLeaveType(type)}
+                />
+              }
+              label={type}
+            />
+          ))}
           <Button
             variant="contained"
             sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
@@ -191,7 +195,7 @@ function UserInfo() {
         </Box>
       </Grid>
 
-      {/* Leave Table */}
+      {/* Leave Records Table */}
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
@@ -207,7 +211,10 @@ function UserInfo() {
             {filteredLeaves.map((leave, index) => (
               <TableRow
                 key={index}
-                sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}
+                sx={{
+                  backgroundColor:
+                    colorMap[leave["Absence Description"]] || "white",
+                }}
               >
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
