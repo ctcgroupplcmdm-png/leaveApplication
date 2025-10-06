@@ -12,8 +12,7 @@ export const loginRequest = {
   scopes: [
     "openid",
     "profile",
-    "offline_access",
-    "https://graph.microsoft.com/User.ReadBasic.All",
-	"https://cyprustrading.sharepoint.com/.default"
+    "offline_access"
+    
   ]
 };
