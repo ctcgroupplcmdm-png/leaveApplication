@@ -24,7 +24,7 @@ function UserInfo() {
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
   const [annualAllowance, setAnnualAllowance] = useState(null);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // ✅ preselect Annual Leave
 
   useEffect(() => {
     if (accounts.length > 0) {
