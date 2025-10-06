@@ -39,6 +39,7 @@ function UserInfo() {
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
+  const [annualAllowance, setAnnualAllowance] = useState(0);
   const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
@@ -58,12 +59,19 @@ function UserInfo() {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
 
-          // Skip the "Yearly Entitlement Balance" row
+          // 🟢 Capture hidden “Yearly Entitlement Balance” row for Annual Allowance
+          const hiddenRow = parsedLeaves.find(
+            (l) => l["Absence Description"] === "Yearly Entitlement Balance"
+          );
+          setAnnualAllowance(hiddenRow ? hiddenRow["Remaining Balance"] : 0);
+
+          // 🟢 Filter visible rows
           const filtered = parsedLeaves.filter(
             (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
           );
           setLeaves(filtered);
 
+          // 🟢 Get remaining balance from last visible record
           const lastBalance =
             filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
           setRemainingBalance(lastBalance);
@@ -173,7 +181,7 @@ function UserInfo() {
         {/* Stats + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
-            label={`${leaves[0]?.["Remaining Balance"] || 0} Annual Allowance`}
+            label={`${annualAllowance || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
@@ -243,7 +251,12 @@ function UserInfo() {
         {/* Filters + New Leave */}
         <Grid
           item
-          sx={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 3,
+            flexWrap: "wrap",
+          }}
         >
           <FormGroup row>
             {leaveTypes.map((type, index) => (
