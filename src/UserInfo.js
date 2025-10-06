@@ -18,35 +18,25 @@ import {
   Checkbox,
 } from "@mui/material";
 
+// ✅ Map company names to logo filenames
+const companyLogos = {
+  "Argosy Trading Company Ltd": "argosy.png",
+  "Cyprus Trading Corporation Plc": "ctc.png",
+  "Artview Co. Ltd": "artview.png",
+  "CTC Automotive Ltd": "automotive.png",
+  "Cassandra Trading Ltd": "cassandra.png",
+  "Woolworth (Cyprus) Properties Plc": "wwl.png",
+  "Apex Ltd": "apex.png",
+  "N.K. Shacolas (Holdings) Ltd": "nks.png",
+  "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
+};
+
 function UserInfo() {
   const { instance, accounts } = useMsal();
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
-  const [filterTypes, setFilterTypes] = useState(["Annual Leave"]);
-
-  // 🔹 Map company names to logo paths
-  const logoMap = {
-    "Argosy Trading Company Ltd": "argosy.png",
-    "Cyprus Trading Corporation Plc": "ctc.png",
-    "Artview Co. Ltd": "artview.png",
-    "CTC Automotive Ltd": "automotive.png",
-    "Cassandra Trading Ltd": "cassandra.png",
-    "Woolworth (Cyprus) Properties Plc": "wwl.png",
-    "Apex Ltd": "apex.png",
-    "N.K. Shacolas (Holdings) Ltd": "nks.png",
-    "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
-  };
-
-  // 🔹 Load company logo safely
-  const getLogo = (companyName) => {
-    const logoFile = logoMap[companyName];
-    try {
-      return require(`./logos/${logoFile}`);
-    } catch {
-      return require(`./logos/default.png`); // fallback logo
-    }
-  };
+  const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -64,74 +54,97 @@ function UserInfo() {
         .then((res) => res.json())
         .then((data) => {
           if (data.leavesTaken) {
-            const parsedLeaves = JSON.parse(data.leavesTaken).filter(
-              (row) => row["Absence Description"] !== "Yearly Entitlement Balance"
-            );
+            const parsedLeaves = JSON.parse(data.leavesTaken);
             setLeaves(parsedLeaves);
 
-            // Take first hidden row (Yearly Entitlement Balance) as annual allowance
-            const hiddenRow = JSON.parse(data.leavesTaken).find(
-              (row) => row["Absence Description"] === "Yearly Entitlement Balance"
+            // Skip the first "Yearly Entitlement Balance" row
+            const filtered = parsedLeaves.filter(
+              (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
             );
-            const annualAllowance = hiddenRow?.["Remaining Balance"] || 0;
+            setLeaves(filtered);
 
+            // Remaining balance from last record
             const lastBalance =
-              parsedLeaves[parsedLeaves.length - 1]?.["Remaining Balance"] || 0;
-            setRemainingBalance({ last: lastBalance, annual: annualAllowance });
+              filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
+            setRemainingBalance(lastBalance);
           }
 
           setUserData({
             name: data.displayName,
             employeeId: data.employeeId,
             phone: data.mobilePhone,
-            company: data.companyName || "Unknown Company",
+            companyName: data.companyName || "Company",
           });
         })
         .catch((err) => console.error("Error fetching Logic App data:", err));
     }
   }, [accounts]);
 
-  const logout = () => instance.logoutRedirect();
-
   if (!userData) return <Typography>Loading user data...</Typography>;
 
-  const companyLogo = getLogo(userData.company);
+  // 🟢 Filter leaves by selected types
+  const filteredLeaves = leaves.filter((leave) =>
+    selectedTypes.includes(leave["Absence Description"])
+  );
+
   const leaveTypes = [...new Set(leaves.map((l) => l["Absence Description"]))];
 
-  const handleFilterChange = (type) => {
-    setFilterTypes((prev) =>
+  const handleTypeChange = (type) => {
+    setSelectedTypes((prev) =>
       prev.includes(type)
         ? prev.filter((t) => t !== type)
         : [...prev, type]
     );
   };
 
-  const filteredLeaves = leaves.filter((l) =>
-    filterTypes.includes(l["Absence Description"])
-  );
+  // 🟦 Color by leave type
+  const getRowColor = (type) => {
+    switch (type) {
+      case "Annual Leave":
+        return "#e3f2fd";
+      case "Sick Leave":
+        return "#fce4ec";
+      case "Maternity Leave":
+        return "#f3e5f5";
+      default:
+        return "#ffffff";
+    }
+  };
+
+  const logout = () => instance.logoutRedirect();
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* 🔹 Top Bar */}
-      <Grid container alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-        <Grid item display="flex" alignItems="center" gap={2}>
-          <img
-            src={companyLogo}
-            alt="Company Logo"
-            style={{ width: "80px", height: "auto" }}
-          />
-          <Typography variant="h5" fontWeight="bold">
-            {userData.company}
+      {/* Top Bar */}
+      <Grid
+        container
+        spacing={2}
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: 3 }}
+      >
+        {/* Logo + Company Name */}
+        <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {userData?.companyName && companyLogos[userData.companyName] && (
+            <img
+              src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
+              alt={userData.companyName}
+              style={{ width: 40, height: 40, objectFit: "contain" }}
+            />
+          )}
+          <Typography variant="h6" fontWeight="bold">
+            {userData.companyName}
           </Typography>
         </Grid>
 
-        <Grid item display="flex" gap={2}>
+        {/* Stats + Logout */}
+        <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
-            label={`${remainingBalance?.annual || 0} Annual Allowance`}
+            label={`${leaves[0]?.["Remaining Balance"] || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
-            label={`${remainingBalance?.last || 0} Leave Days Remaining`}
+            label={`${remainingBalance || 0} Leave Days Remaining`}
             color="primary"
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
@@ -141,7 +154,7 @@ function UserInfo() {
         </Grid>
       </Grid>
 
-      {/* 🔹 Welcome Section */}
+      {/* Welcome Header */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Welcome {userData.name}
       </Typography>
@@ -149,40 +162,36 @@ function UserInfo() {
         Employee ID: {userData.employeeId}
       </Typography>
 
-      {/* 🔹 Actions & Filters */}
-      <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 3, mb: 2 }}>
-        <Grid item>
-          <Button
-            variant="contained"
-            sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
-          >
-            + New Leave Request
-          </Button>
-        </Grid>
-
-        <Grid item>
+      {/* Leave Records Section */}
+      <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
+        <Typography variant="h5" fontWeight="bold">
+          Leave Records
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <FormGroup row>
-            {leaveTypes.map((type, i) => (
+            {leaveTypes.map((type, index) => (
               <FormControlLabel
-                key={i}
+                key={index}
                 control={
                   <Checkbox
-                    checked={filterTypes.includes(type)}
-                    onChange={() => handleFilterChange(type)}
-                    sx={{
-                      color: "#1976d2",
-                      "&.Mui-checked": { color: "#1976d2" },
-                    }}
+                    checked={selectedTypes.includes(type)}
+                    onChange={() => handleTypeChange(type)}
                   />
                 }
                 label={type}
               />
             ))}
           </FormGroup>
-        </Grid>
+          <Button
+            variant="contained"
+            sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
+          >
+            + New Leave Request
+          </Button>
+        </Box>
       </Grid>
 
-      {/* 🔹 Table */}
+      {/* Leave Table */}
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
@@ -195,25 +204,18 @@ function UserInfo() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredLeaves.map((leave, index) => {
-              const colorMap = {
-                "Annual Leave": "#e3f2fd",
-                "Sick Leave": "#fce4ec",
-                "Unpaid Leave": "#fff3e0",
-                "Maternity Leave": "#ede7f6",
-              };
-              const bgColor = colorMap[leave["Absence Description"]] || "#ffffff";
-
-              return (
-                <TableRow key={index} sx={{ backgroundColor: bgColor }}>
-                  <TableCell>{leave["Absence Description"]}</TableCell>
-                  <TableCell>{leave["Start Date"]}</TableCell>
-                  <TableCell>{leave["End Date"]}</TableCell>
-                  <TableCell>{leave["Annual Leave Deduction"]}</TableCell>
-                  <TableCell>{leave["Remaining Balance"]}</TableCell>
-                </TableRow>
-              );
-            })}
+            {filteredLeaves.map((leave, index) => (
+              <TableRow
+                key={index}
+                sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}
+              >
+                <TableCell>{leave["Absence Description"]}</TableCell>
+                <TableCell>{leave["Start Date"]}</TableCell>
+                <TableCell>{leave["End Date"]}</TableCell>
+                <TableCell>{leave["Annual Leave Deduction"]}</TableCell>
+                <TableCell>{leave["Remaining Balance"]}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
