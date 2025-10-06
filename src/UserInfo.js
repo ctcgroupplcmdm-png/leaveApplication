@@ -1,21 +1,32 @@
 import { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Typography, CircularProgress
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
 } from "@mui/material";
 
 function UserInfo() {
   const { accounts } = useMsal();
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [remainingBalance, setRemainingBalance] = useState(null);
 
   useEffect(() => {
     if (accounts.length > 0) {
       const account = accounts[0];
       const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
+      // Call your Logic App
       fetch(
         "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
         {
@@ -26,71 +37,97 @@ function UserInfo() {
       )
         .then((res) => res.json())
         .then((data) => {
-          setUserData(data);
-          try {
-            if (data.leavesTaken) {
-              const parsedLeaves = JSON.parse(data.leavesTaken);
-              setLeaves(parsedLeaves);
-            }
-          } catch (err) {
-            console.error("Failed to parse leavesTaken", err);
+          if (data.leavesTaken) {
+            const parsedLeaves = JSON.parse(data.leavesTaken);
+            setLeaves(parsedLeaves);
+
+            // Get Remaining Balance from last record
+            const lastBalance =
+              parsedLeaves[parsedLeaves.length - 1]?.["Remaining Balance"] || 0;
+            setRemainingBalance(lastBalance);
           }
-          setLoading(false);
+
+          setUserData({
+            name: data.displayName,
+            employeeId: data.employeeId,
+            phone: data.mobilePhone,
+          });
         })
-        .catch((err) => {
-          console.error("Logic App call failed", err);
-          setLoading(false);
-        });
+        .catch((err) => console.error("Error fetching Logic App data:", err));
     }
   }, [accounts]);
 
-  if (accounts.length === 0) return <Typography>Not signed in</Typography>;
-  if (loading) return <CircularProgress />;
+  if (!userData) return <Typography>Loading user data...</Typography>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <Typography variant="h4" gutterBottom>
-        Welcome, {userData?.displayName}
-      </Typography>
-      <Typography variant="body1"><b>Username:</b> {accounts[0].username}</Typography>
-      <Typography variant="body1"><b>Employee ID:</b> {userData?.employeeId}</Typography>
-      <Typography variant="body1"><b>Phone:</b> {userData?.mobilePhone}</Typography>
+    <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+      {/* Top Bar */}
+      <Grid container spacing={2} justifyContent="flex-end" sx={{ mb: 3 }}>
+        <Grid item>
+          <Chip
+            label="20  Annual Allowance"
+            sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
+          />
+        </Grid>
+        <Grid item>
+          <Chip
+            label={`${remainingBalance || 0}  Leave Days Remaining`}
+            color="primary"
+            sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
+          />
+        </Grid>
+        <Grid item>
+          <Button variant="outlined" color="error">
+            Logout
+          </Button>
+        </Grid>
+      </Grid>
 
-      <Typography variant="h5" style={{ marginTop: "30px" }} gutterBottom>
-        Leave History
+      {/* Welcome Header */}
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Welcome {userData.name}
+      </Typography>
+      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+        Employee ID: {userData.employeeId}
       </Typography>
 
-      {leaves.length > 0 ? (
-        <TableContainer component={Paper} elevation={3}>
-          <Table>
-            <TableHead>
-              <TableRow style={{ backgroundColor: "#1976d2" }}>
-                <TableCell style={{ color: "white" }}>Absence Description</TableCell>
-                <TableCell style={{ color: "white" }}>Start Date</TableCell>
-                <TableCell style={{ color: "white" }}>End Date</TableCell>
-                <TableCell style={{ color: "white" }}>Working Days</TableCell>
-                <TableCell style={{ color: "white" }}>Deduction</TableCell>
-                <TableCell style={{ color: "white" }}>Remaining Balance</TableCell>
+      {/* Leave Records Section */}
+      <Typography variant="h5" fontWeight="bold" sx={{ mt: 4, mb: 2 }}>
+        Leave Records
+      </Typography>
+
+      <Button
+        variant="contained"
+        sx={{ mb: 2, textTransform: "none", backgroundColor: "#1976d2" }}
+      >
+        + New Leave Request
+      </Button>
+
+      <TableContainer component={Paper} elevation={2}>
+        <Table>
+          <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
+            <TableRow>
+              <TableCell><b>Leave Type</b></TableCell>
+              <TableCell><b>Start Date</b></TableCell>
+              <TableCell><b>End Date</b></TableCell>
+              <TableCell><b>Days Deducted</b></TableCell>
+              <TableCell><b>Remaining Balance</b></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {leaves.map((leave, index) => (
+              <TableRow key={index}>
+                <TableCell>{leave["Absence Description"]}</TableCell>
+                <TableCell>{leave["Start Date"]}</TableCell>
+                <TableCell>{leave["End Date"]}</TableCell>
+                <TableCell>{leave["Annual Leave Deduction"]}</TableCell>
+                <TableCell>{leave["Remaining Balance"]}</TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {leaves.map((leave, index) => (
-                <TableRow key={index} hover>
-                  <TableCell>{leave["Absence Description"]}</TableCell>
-                  <TableCell>{leave["Start Date"]}</TableCell>
-                  <TableCell>{leave["End Date"]}</TableCell>
-                  <TableCell>{leave["Working Date"]}</TableCell>
-                  <TableCell>{leave["Annual Leave Deduction"]}</TableCell>
-                  <TableCell>{leave["Remaining Balance"]}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <Typography>No leave records found.</Typography>
-      )}
-    </div>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
 
