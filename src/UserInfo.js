@@ -61,8 +61,10 @@ function UserInfo() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h2>Welcome {displayName}</h2>
-          <p><b>Employee ID:</b> {employeeId}</p>
-          <p><b>Phone:</b> {phone}</p>
+         <p style={styles.info}><b>Employee ID:</b> {employeeId}</p>
+<p style={styles.info}><b>Object ID:</b> {objectId}</p>
+<p style={styles.info}><b>Phone:</b> {phone}</p>
+
         </div>
         <div>
           <button onClick={logout}>Logout</button>
