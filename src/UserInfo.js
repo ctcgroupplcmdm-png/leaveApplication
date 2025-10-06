@@ -94,6 +94,21 @@ function UserInfo() {
       ? leaves
       : leaves.filter((l) => selectedTypes.includes(l["Absence Description"]));
 
+  // Assign consistent color per leave type
+  const typeColors = {};
+  const palette = [
+    "#e3f2fd",
+    "#fce4ec",
+    "#f3e5f5",
+    "#e8f5e9",
+    "#fff3e0",
+    "#ede7f6",
+    "#f9fbe7",
+  ];
+  leaveTypes.forEach((type, i) => {
+    typeColors[type] = palette[i % palette.length];
+  });
+
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       {/* Top Bar */}
@@ -131,28 +146,29 @@ function UserInfo() {
         Leave Records
       </Typography>
 
-      <Button
-        variant="contained"
-        sx={{ mb: 2, textTransform: "none", backgroundColor: "#1976d2" }}
-      >
-        + New Leave Request
-      </Button>
-
-      {/* Inline Checkboxes for Leave Type Filters */}
-      <FormGroup row sx={{ mb: 2 }}>
-        {leaveTypes.map((type, index) => (
-          <FormControlLabel
-            key={index}
-            control={
-              <Checkbox
-                checked={selectedTypes.includes(type)}
-                onChange={() => handleTypeChange(type)}
-              />
-            }
-            label={type}
-          />
-        ))}
-      </FormGroup>
+      {/* Button + Filters inline */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 2 }}>
+        <Button
+          variant="contained"
+          sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
+        >
+          + New Leave Request
+        </Button>
+        <FormGroup row>
+          {leaveTypes.map((type, index) => (
+            <FormControlLabel
+              key={index}
+              control={
+                <Checkbox
+                  checked={selectedTypes.includes(type)}
+                  onChange={() => handleTypeChange(type)}
+                />
+              }
+              label={type}
+            />
+          ))}
+        </FormGroup>
+      </Box>
 
       <TableContainer component={Paper} elevation={2}>
         <Table>
@@ -167,7 +183,12 @@ function UserInfo() {
           </TableHead>
           <TableBody>
             {filteredLeaves.map((leave, index) => (
-              <TableRow key={index}>
+              <TableRow
+                key={index}
+                sx={{
+                  backgroundColor: typeColors[leave["Absence Description"]],
+                }}
+              >
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
                 <TableCell>{leave["End Date"]}</TableCell>
