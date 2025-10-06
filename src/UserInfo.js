@@ -18,7 +18,6 @@ import {
   Checkbox,
 } from "@mui/material";
 
-// ✅ Map company names to logo filenames
 const companyLogos = {
   "Argosy Trading Company Ltd": "argosy.png",
   "Cyprus Trading Corporation Plc": "ctc.png",
@@ -36,6 +35,7 @@ function UserInfo() {
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
+  const [annualAllowance, setAnnualAllowance] = useState(null);
   const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]); // Default filter
 
   useEffect(() => {
@@ -55,15 +55,20 @@ function UserInfo() {
         .then((data) => {
           if (data.leavesTaken) {
             const parsedLeaves = JSON.parse(data.leavesTaken);
-            setLeaves(parsedLeaves);
 
-            // Skip the first "Yearly Entitlement Balance" row
+            // Find hidden "Yearly Entitlement Balance" row
+            const yearlyRow = parsedLeaves.find(
+              (l) => l["Absence Description"] === "Yearly Entitlement Balance"
+            );
+            setAnnualAllowance(yearlyRow?.["Remaining Balance"] || 0);
+
+            // Exclude hidden row from display table
             const filtered = parsedLeaves.filter(
               (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
             );
             setLeaves(filtered);
 
-            // Remaining balance from last record
+            // Remaining balance from last record (displayed)
             const lastBalance =
               filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
             setRemainingBalance(lastBalance);
@@ -82,7 +87,6 @@ function UserInfo() {
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
-  // 🟢 Filter leaves by selected types
   const filteredLeaves = leaves.filter((leave) =>
     selectedTypes.includes(leave["Absence Description"])
   );
@@ -97,7 +101,6 @@ function UserInfo() {
     );
   };
 
-  // 🟦 Color by leave type
   const getRowColor = (type) => {
     switch (type) {
       case "Annual Leave":
@@ -115,7 +118,6 @@ function UserInfo() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* Top Bar */}
       <Grid
         container
         spacing={2}
@@ -129,7 +131,7 @@ function UserInfo() {
             <img
               src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
               alt={userData.companyName}
-              style={{ width: 40, height: 40, objectFit: "contain" }}
+              style={{ width: 60, height: 60, objectFit: "contain" }} // ⬆️ Bigger logo
             />
           )}
           <Typography variant="h6" fontWeight="bold">
@@ -140,7 +142,7 @@ function UserInfo() {
         {/* Stats + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
-            label={`${leaves[0]?.["Remaining Balance"] || 0} Annual Allowance`}
+            label={`${annualAllowance || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
@@ -154,7 +156,6 @@ function UserInfo() {
         </Grid>
       </Grid>
 
-      {/* Welcome Header */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Welcome {userData.name}
       </Typography>
@@ -162,7 +163,7 @@ function UserInfo() {
         Employee ID: {userData.employeeId}
       </Typography>
 
-      {/* Leave Records Section */}
+      {/* Leave Records + Filters */}
       <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
         <Typography variant="h5" fontWeight="bold">
           Leave Records
@@ -191,7 +192,6 @@ function UserInfo() {
         </Box>
       </Grid>
 
-      {/* Leave Table */}
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
