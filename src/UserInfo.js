@@ -61,7 +61,8 @@ function UserInfo() {
         <div>
           <h2 style={styles.title}>Welcome, {displayName}</h2>
           <p style={styles.info}><b>Employee ID:</b> {employeeId}</p>
-          <p style={styles.info}><b>Phone:</b> {phone}</p>
+		  <p style={styles.info}><b>Object ID:</b> {objectId}</p>
+		  <p style={styles.info}><b>Phone:</b> {phone}</p>
         </div>
         <button style={styles.logoutButton} onClick={logout}>
           Logout
