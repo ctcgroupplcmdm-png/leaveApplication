@@ -10,6 +10,7 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  Paper,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -61,15 +62,16 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
+        // ✅ Use exact keys from provided response
         setUserData(data);
         setFormData({
-          fullName: data.displayName || "",
-          employeeId: data.employeeId || "",
-          phone: data.mobilePhone || "",
-          personalEmail: data.personalEmail || "",
-          maritalStatus: data.maritalStatus || "",
-          educationLevel: data.educationLevel || "",
-          gender: data.gender || "",
+          fullName: data.FullName || "",
+          employeeId: data.EmployeeId?.toString() || "",
+          phone: data.Phone?.toString() || "",
+          personalEmail: data.PersonalEmail || "",
+          maritalStatus: data["Marital Status"] || "",
+          educationLevel: data.EducationalLevel || "",
+          gender: data.Gender || "",
         });
       })
       .catch((err) => console.error("Error fetching info:", err))
@@ -158,7 +160,7 @@ function PersonalInfo() {
             />
           )}
           <Typography variant="h6" fontWeight="bold">
-            {userData.companyName}
+            {userData.companyName || "Company"}
           </Typography>
         </Grid>
 
@@ -186,51 +188,61 @@ function PersonalInfo() {
       </Typography>
 
       {/* Form */}
-      <Box
+      <Paper
+        elevation={2}
         sx={{
           mt: 4,
           p: 4,
           backgroundColor: "#ffffff",
           borderRadius: 2,
-          boxShadow: 2,
-          maxWidth: 700,
+          maxWidth: "100%",
         }}
       >
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          {/* Full Name */}
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Full Name"
               name="fullName"
               value={formData.fullName}
-              onChange={handleChange}
-              InputProps={{ readOnly: true }}
+              InputProps={{
+                readOnly: true,
+                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
+              }}
             />
           </Grid>
 
-          <Grid item xs={12}>
+          {/* Employee ID */}
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Employee ID"
               name="employeeId"
               value={formData.employeeId}
-              onChange={handleChange}
-              InputProps={{ readOnly: true }}
+              InputProps={{
+                readOnly: true,
+                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
+              }}
             />
           </Grid>
 
-          <Grid item xs={12}>
+          {/* Phone */}
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Phone"
               name="phone"
               value={formData.phone}
-              onChange={handleChange}
-              InputProps={{ readOnly: true }}
+              InputProps={{
+                readOnly: true,
+                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
+              }}
             />
           </Grid>
 
-          <Grid item xs={12}>
+          {/* Personal Email */}
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="Personal Email"
@@ -240,7 +252,8 @@ function PersonalInfo() {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          {/* Marital Status */}
+          <Grid item xs={12} sm={4}>
             <TextField
               select
               fullWidth
@@ -256,7 +269,8 @@ function PersonalInfo() {
             </TextField>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          {/* Gender */}
+          <Grid item xs={12} sm={4}>
             <TextField
               select
               fullWidth
@@ -271,7 +285,8 @@ function PersonalInfo() {
             </TextField>
           </Grid>
 
-          <Grid item xs={12}>
+          {/* Education Level */}
+          <Grid item xs={12} sm={4}>
             <TextField
               select
               fullWidth
@@ -288,6 +303,7 @@ function PersonalInfo() {
             </TextField>
           </Grid>
 
+          {/* Update Button */}
           <Grid item xs={12} textAlign="right">
             <Button
               variant="contained"
@@ -299,8 +315,9 @@ function PersonalInfo() {
             </Button>
           </Grid>
         </Grid>
-      </Box>
+      </Paper>
 
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
