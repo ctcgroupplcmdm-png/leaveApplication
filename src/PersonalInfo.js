@@ -52,7 +52,6 @@ function PersonalInfo() {
   const url =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
 
-  // ✅ Fetch user info
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(url, {
@@ -62,7 +61,6 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
-        // ✅ Use exact keys from provided response
         setUserData(data);
         setFormData({
           fullName: data.FullName || "",
@@ -78,14 +76,12 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // ✅ Handle input change
   const handleChange = (e) => {
     setChanged(true);
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Update info
   const handleUpdate = () => {
     if (!changed) return;
     const account = accounts[0];
@@ -152,11 +148,7 @@ function PersonalInfo() {
             <img
               src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
               alt={userData.companyName}
-              style={{
-                width: 60,
-                height: 60,
-                objectFit: "contain",
-              }}
+              style={{ width: 60, height: 60, objectFit: "contain" }}
             />
           )}
           <Typography variant="h6" fontWeight="bold">
@@ -165,11 +157,7 @@ function PersonalInfo() {
         </Grid>
 
         <Grid item sx={{ display: "flex", gap: 2 }}>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => navigate("/")}
-          >
+          <Button variant="outlined" color="primary" onClick={() => navigate("/")}>
             ← Back
           </Button>
           <Button variant="outlined" color="error" onClick={logout}>
@@ -200,7 +188,7 @@ function PersonalInfo() {
       >
         <Grid container spacing={3}>
           {/* Full Name */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Full Name"
@@ -214,7 +202,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Employee ID */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Employee ID"
@@ -228,7 +216,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Phone */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Phone"
@@ -242,7 +230,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Personal Email */}
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Personal Email"
@@ -253,7 +241,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Marital Status */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
@@ -270,7 +258,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Gender */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
@@ -286,13 +274,13 @@ function PersonalInfo() {
           </Grid>
 
           {/* Education Level */}
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
               label="Education Level"
               name="educationLevel"
-              value={formData.educationLevel}
+              value={formData.educationLevel || ""}
               onChange={handleChange}
             >
               <MenuItem value="High School">High School</MenuItem>
