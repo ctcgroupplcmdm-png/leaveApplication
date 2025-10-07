@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useNavigate } from "react-router-dom";
 
 // ✅ Map company names to logo filenames
 const companyLogos = {
@@ -36,10 +37,10 @@ const companyLogos = {
 
 function UserInfo() {
   const { instance, accounts } = useMsal();
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [remainingBalance, setRemainingBalance] = useState(null);
-  const [annualAllowance, setAnnualAllowance] = useState(0);
   const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
@@ -59,22 +60,22 @@ function UserInfo() {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
 
-          // 🟢 Capture hidden “Yearly Entitlement Balance” row
-          const hiddenRow = parsedLeaves.find(
+          // Find "Yearly Entitlement Balance" row first (hidden row)
+          const entitlementRow = parsedLeaves.find(
             (l) => l["Absence Description"] === "Yearly Entitlement Balance"
           );
-          setAnnualAllowance(hiddenRow ? hiddenRow["Remaining Balance"] : 0);
+          const annualAllowance =
+            entitlementRow?.["Remaining Balance"] || 0;
 
-          // 🟢 Filter visible rows
+          // Filter visible rows
           const filtered = parsedLeaves.filter(
             (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
           );
           setLeaves(filtered);
 
-          // 🟢 Get remaining balance from last visible record
           const lastBalance =
             filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
-          setRemainingBalance(lastBalance);
+          setRemainingBalance({ annualAllowance, lastBalance });
         }
 
         setUserData({
@@ -127,82 +128,52 @@ function UserInfo() {
 
   const logout = () => instance.logoutRedirect();
 
-  // 🧾 Export to PDF (with logo, employee details, and table)
-// 🧾 Export to PDF (with properly scaled logo)
-const exportToPDF = async () => {
-  const doc = new jsPDF();
+  // 🧾 Export to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
 
-  const logoFile =
-    userData?.companyName && companyLogos[userData.companyName]
+    // Header with logo + company name
+    const logoFile = companyLogos[userData.companyName]
       ? require(`./assets/logos/${companyLogos[userData.companyName]}`)
       : null;
+    if (logoFile) {
+      const img = new Image();
+      img.src = logoFile;
+      doc.addImage(img, "PNG", 15, 10, 25, 25);
+    }
 
-  // Draw logo if available — adaptive size based on image ratio
-  if (logoFile) {
-    const logoImg = new Image();
-    logoImg.src = logoFile;
-    await new Promise((resolve) => {
-      logoImg.onload = () => {
-        const maxWidth = 25;
-        const maxHeight = 25;
-        let width = logoImg.width;
-        let height = logoImg.height;
+    doc.text(userData.companyName, 50, 20);
+    doc.setFontSize(12);
+    doc.text(`Employee: ${userData.name}`, 50, 30);
+    doc.text(`Employee ID: ${userData.employeeId}`, 50, 37);
+    doc.text(`Year: ${selectedYear}`, 50, 44);
 
-        // Maintain aspect ratio
-        if (width > height) {
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = (width * maxHeight) / height;
-            height = maxHeight;
-          }
-        }
-
-        // Center vertically to text area
-        doc.addImage(logoImg, "PNG", 14, 12, width, height);
-        resolve();
-      };
+    // Leave records table
+    autoTable(doc, {
+      startY: 55,
+      head: [["Type", "Start", "End", "Days", "Remaining"]],
+      body: filteredLeaves.map((l) => [
+        l["Absence Description"],
+        l["Start Date"],
+        l["End Date"],
+        l["Annual Leave Deduction"],
+        l["Remaining Balance"],
+      ]),
     });
-  }
 
-  // Company info text
-  doc.setFontSize(18);
-  doc.text(`${userData.companyName}`, 45, 20);
-  doc.setFontSize(12);
-  doc.text(`Employee: ${userData.name}`, 45, 28);
-  doc.text(`Employee ID: ${userData.employeeId}`, 45, 34);
-  doc.text(`Year: ${selectedYear}`, 45, 40);
+    const lastY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(12);
+    doc.text(
+      `Annual Allowance: ${remainingBalance?.annualAllowance || 0} | Remaining Balance: ${
+        remainingBalance?.lastBalance || 0
+      }`,
+      15,
+      lastY
+    );
 
-  doc.setFontSize(14);
-  doc.text("Leave Records", 14, 55);
-
-  // Leave data table
-  autoTable(doc, {
-    startY: 60,
-    head: [["Type", "Start", "End", "Days", "Remaining"]],
-    body: filteredLeaves.map((l) => [
-      l["Absence Description"],
-      l["Start Date"],
-      l["End Date"],
-      l["Annual Leave Deduction"],
-      l["Remaining Balance"],
-    ]),
-  });
-
-  // Summary
-  const endY = doc.lastAutoTable.finalY + 10;
-  doc.text(
-    `Annual Allowance: ${annualAllowance} | Remaining Balance: ${remainingBalance}`,
-    14,
-    endY
-  );
-
-  doc.save(`Leave_Records_${selectedYear}.pdf`);
-};
-
+    doc.save(`Leave_Records_${selectedYear}.pdf`);
+  };
 
   const currentYear = new Date().getFullYear();
 
@@ -230,14 +201,22 @@ const exportToPDF = async () => {
           </Typography>
         </Grid>
 
-        {/* Stats + Logout */}
+        {/* Stats + Back + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate("/")}
+            sx={{ mr: 2 }}
+          >
+            ← Back
+          </Button>
           <Chip
-            label={`${annualAllowance || 0} Annual Allowance`}
+            label={`${remainingBalance?.annualAllowance || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
           <Chip
-            label={`${remainingBalance || 0} Leave Days Remaining`}
+            label={`${remainingBalance?.lastBalance || 0} Leave Days Remaining`}
             color="primary"
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
@@ -303,12 +282,7 @@ const exportToPDF = async () => {
         {/* Filters + New Leave */}
         <Grid
           item
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-            flexWrap: "wrap",
-          }}
+          sx={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}
         >
           <FormGroup row>
             {leaveTypes.map((type, index) => (
@@ -338,18 +312,30 @@ const exportToPDF = async () => {
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
             <TableRow>
-              <TableCell><b>Leave Type</b></TableCell>
-              <TableCell><b>Start Date</b></TableCell>
-              <TableCell><b>End Date</b></TableCell>
-              <TableCell><b>Days Deducted</b></TableCell>
-              <TableCell><b>Remaining Balance</b></TableCell>
+              <TableCell>
+                <b>Leave Type</b>
+              </TableCell>
+              <TableCell>
+                <b>Start Date</b>
+              </TableCell>
+              <TableCell>
+                <b>End Date</b>
+              </TableCell>
+              <TableCell>
+                <b>Days Deducted</b>
+              </TableCell>
+              <TableCell>
+                <b>Remaining Balance</b>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredLeaves.map((leave, index) => (
               <TableRow
                 key={index}
-                sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}
+                sx={{
+                  backgroundColor: getRowColor(leave["Absence Description"]),
+                }}
               >
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
