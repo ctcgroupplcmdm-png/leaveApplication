@@ -1,11 +1,11 @@
 import React from "react";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
+import UserInfo from "./UserInfo";
+import LandingPage from "./LandingPage";
+import PersonalInfo from "./PersonalInfo";
 import { Box, Button } from "@mui/material";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-import LandingPage from "./LandingPage";
-import UserInfo from "./UserInfo"; // Annual Leave page
 
 function App() {
   const { instance, accounts } = useMsal();
@@ -18,39 +18,17 @@ function App() {
       <Box sx={{ backgroundColor: "#f8fafc", minHeight: "100vh" }}>
         {accounts.length > 0 ? (
           <Routes>
-            {/* Landing page after login */}
-            <Route path="/" element={<LandingPage />} />
+            {/* 🏠 Landing Page */}
+            <Route path="/" element={<LandingPage onLogout={logout} />} />
 
-            {/* Annual Leave page */}
+            {/* 🗓 Annual Leave Page */}
             <Route path="/annual-leave" element={<UserInfo onLogout={logout} />} />
 
-            {/* Placeholder for future page */}
-            <Route
-              path="/personal-info"
-              element={
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "100vh",
-                  }}
-                >
-                  <h2>Personal Information Page — Coming Soon</h2>
-                  <Button
-                    variant="outlined"
-                    onClick={() => window.history.back()}
-                    sx={{ mt: 2 }}
-                  >
-                    Go Back
-                  </Button>
-                </Box>
-              }
-            />
+            {/* 👤 Personal Info Page */}
+            <Route path="/personal-info" element={<PersonalInfo onLogout={logout} />} />
           </Routes>
         ) : (
-          // Login Screen
+          // 🔒 Login Screen
           <Box
             sx={{
               display: "flex",
