@@ -128,59 +128,81 @@ function UserInfo() {
   const logout = () => instance.logoutRedirect();
 
   // 🧾 Export to PDF (with logo, employee details, and table)
-  const exportToPDF = async () => {
-    const doc = new jsPDF();
-    const logoFile =
-      userData?.companyName && companyLogos[userData.companyName]
-        ? require(`./assets/logos/${companyLogos[userData.companyName]}`)
-        : null;
+// 🧾 Export to PDF (with properly scaled logo)
+const exportToPDF = async () => {
+  const doc = new jsPDF();
 
-    // Draw logo (if available)
-    if (logoFile) {
-      const logoImg = new Image();
-      logoImg.src = logoFile;
-      await new Promise((resolve) => {
-        logoImg.onload = () => {
-          doc.addImage(logoImg, "PNG", 14, 10, 25, 25);
-          resolve();
-        };
-      });
-    }
+  const logoFile =
+    userData?.companyName && companyLogos[userData.companyName]
+      ? require(`./assets/logos/${companyLogos[userData.companyName]}`)
+      : null;
 
-    // Title and header info
-    doc.setFontSize(18);
-    doc.text(`${userData.companyName}`, 45, 20);
-    doc.setFontSize(12);
-    doc.text(`Employee: ${userData.name}`, 45, 28);
-    doc.text(`Employee ID: ${userData.employeeId}`, 45, 34);
-    doc.text(`Year: ${selectedYear}`, 45, 40);
+  // Draw logo if available — adaptive size based on image ratio
+  if (logoFile) {
+    const logoImg = new Image();
+    logoImg.src = logoFile;
+    await new Promise((resolve) => {
+      logoImg.onload = () => {
+        const maxWidth = 25;
+        const maxHeight = 25;
+        let width = logoImg.width;
+        let height = logoImg.height;
 
-    doc.setFontSize(14);
-    doc.text("Leave Records", 14, 55);
+        // Maintain aspect ratio
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+        }
 
-    // Leave data table
-    autoTable(doc, {
-      startY: 60,
-      head: [["Type", "Start", "End", "Days", "Remaining"]],
-      body: filteredLeaves.map((l) => [
-        l["Absence Description"],
-        l["Start Date"],
-        l["End Date"],
-        l["Annual Leave Deduction"],
-        l["Remaining Balance"],
-      ]),
+        // Center vertically to text area
+        doc.addImage(logoImg, "PNG", 14, 12, width, height);
+        resolve();
+      };
     });
+  }
 
-    // Summary
-    const endY = doc.lastAutoTable.finalY + 10;
-    doc.text(
-      `Annual Allowance: ${annualAllowance} | Remaining Balance: ${remainingBalance}`,
-      14,
-      endY
-    );
+  // Company info text
+  doc.setFontSize(18);
+  doc.text(`${userData.companyName}`, 45, 20);
+  doc.setFontSize(12);
+  doc.text(`Employee: ${userData.name}`, 45, 28);
+  doc.text(`Employee ID: ${userData.employeeId}`, 45, 34);
+  doc.text(`Year: ${selectedYear}`, 45, 40);
 
-    doc.save(`Leave_Records_${selectedYear}.pdf`);
-  };
+  doc.setFontSize(14);
+  doc.text("Leave Records", 14, 55);
+
+  // Leave data table
+  autoTable(doc, {
+    startY: 60,
+    head: [["Type", "Start", "End", "Days", "Remaining"]],
+    body: filteredLeaves.map((l) => [
+      l["Absence Description"],
+      l["Start Date"],
+      l["End Date"],
+      l["Annual Leave Deduction"],
+      l["Remaining Balance"],
+    ]),
+  });
+
+  // Summary
+  const endY = doc.lastAutoTable.finalY + 10;
+  doc.text(
+    `Annual Allowance: ${annualAllowance} | Remaining Balance: ${remainingBalance}`,
+    14,
+    endY
+  );
+
+  doc.save(`Leave_Records_${selectedYear}.pdf`);
+};
+
 
   const currentYear = new Date().getFullYear();
 
