@@ -10,7 +10,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 function App() {
   const { instance, accounts } = useMsal();
   const idleTimer = useRef(null);
-  const IDLE_TIMEOUT = 10 * 60 * 1000; // ⏱ 10 minutes in ms
+  const IDLE_TIMEOUT = 10 * 60 * 1000; // ⏱ 10 minutes
 
   const login = () => instance.loginRedirect(loginRequest);
   const logout = () => instance.logoutRedirect();
@@ -27,17 +27,16 @@ function App() {
       }, IDLE_TIMEOUT);
     };
 
-    // Events that reset idle timer
     const events = ["mousemove", "mousedown", "keypress", "touchstart", "scroll"];
     events.forEach((event) => window.addEventListener(event, resetTimer));
 
-    resetTimer(); // initialize timer on mount
+    resetTimer(); // initialize timer when component mounts
 
     return () => {
       events.forEach((event) => window.removeEventListener(event, resetTimer));
       if (idleTimer.current) clearTimeout(idleTimer.current);
     };
-  }, [accounts]); // re-init when user logs in/out
+  }, [accounts, logout, IDLE_TIMEOUT]); // ✅ Lint-clean dependency array
 
   return (
     <Router>
