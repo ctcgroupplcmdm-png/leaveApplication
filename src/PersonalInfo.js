@@ -30,7 +30,7 @@ const companyLogos = {
 function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
-  const originalData = useRef(null); // keep original data for comparison
+  const originalData = useRef(null);
 
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
@@ -53,7 +53,6 @@ function PersonalInfo() {
   const url =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
 
-  // ✅ Fetch user info
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(url, {
@@ -82,7 +81,6 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // ✅ Detect real changes
   const hasChanges = (current, original) => {
     return Object.keys(current).some(
       (key) => key !== "companyName" && current[key] !== original[key]
@@ -96,7 +94,6 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // ✅ Update info
   const handleUpdate = () => {
     if (!changed) return;
     const account = accounts[0];
@@ -146,6 +143,11 @@ function PersonalInfo() {
         <CircularProgress />
       </Box>
     );
+
+  const fieldStyle = {
+    "& .MuiInputLabel-root": { whiteSpace: "normal" },
+    "& .MuiInputBase-root": { minHeight: 56 },
+  };
 
   const logout = () => instance.logoutRedirect();
 
@@ -210,6 +212,7 @@ function PersonalInfo() {
               label="Full Name"
               name="fullName"
               value={formData.fullName}
+              sx={fieldStyle}
               InputProps={{
                 readOnly: true,
                 style: { backgroundColor: "#f5f5f5", userSelect: "none" },
@@ -224,6 +227,7 @@ function PersonalInfo() {
               label="Employee ID"
               name="employeeId"
               value={formData.employeeId}
+              sx={fieldStyle}
               InputProps={{
                 readOnly: true,
                 style: { backgroundColor: "#f5f5f5", userSelect: "none" },
@@ -238,6 +242,7 @@ function PersonalInfo() {
               label="Phone"
               name="phone"
               value={formData.phone}
+              sx={fieldStyle}
               InputProps={{
                 readOnly: true,
                 style: { backgroundColor: "#f5f5f5", userSelect: "none" },
@@ -253,6 +258,7 @@ function PersonalInfo() {
               name="personalEmail"
               value={formData.personalEmail}
               onChange={handleChange}
+              sx={fieldStyle}
             />
           </Grid>
 
@@ -265,6 +271,7 @@ function PersonalInfo() {
               name="maritalStatus"
               value={formData.maritalStatus}
               onChange={handleChange}
+              sx={fieldStyle}
             >
               <MenuItem value="Married">Married</MenuItem>
               <MenuItem value="Not married">Not married</MenuItem>
@@ -282,6 +289,7 @@ function PersonalInfo() {
               name="gender"
               value={formData.gender}
               onChange={handleChange}
+              sx={fieldStyle}
             >
               <MenuItem value="Male">Male</MenuItem>
               <MenuItem value="Female">Female</MenuItem>
@@ -289,15 +297,16 @@ function PersonalInfo() {
             </TextField>
           </Grid>
 
-          {/* Education Level */}
+          {/* Educational Level */}
           <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
-              label="Education Level"
+              label="Educational Level"
               name="educationLevel"
               value={formData.educationLevel || ""}
               onChange={handleChange}
+              sx={fieldStyle}
             >
               <MenuItem value="High School">High School</MenuItem>
               <MenuItem value="Diploma">Diploma</MenuItem>
