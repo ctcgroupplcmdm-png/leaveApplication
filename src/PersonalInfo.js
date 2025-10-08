@@ -272,7 +272,7 @@ function PersonalInfo() {
         value={formData.maritalStatus}
         onChange={handleChange}
       >
-        <MenuItem value="Married">Married</MenuItem>
+        
         <MenuItem value="Not married">Not married</MenuItem>
         <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
         <MenuItem value="Divorced">Divorced</MenuItem>
