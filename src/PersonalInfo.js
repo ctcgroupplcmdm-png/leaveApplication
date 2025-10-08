@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Company Logos
 const companyLogos = {
   "Argosy Trading Company Ltd": "argosy.png",
   "Cyprus Trading Corporation Plc": "ctc.png",
@@ -81,11 +80,10 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  const hasChanges = (current, original) => {
-    return Object.keys(current).some(
+  const hasChanges = (current, original) =>
+    Object.keys(current).some(
       (key) => key !== "companyName" && current[key] !== original[key]
     );
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -131,8 +129,7 @@ function PersonalInfo() {
 
   useEffect(() => {
     if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+      const oid = accounts[0]?.idTokenClaims?.oid;
       fetchUserInfo(oid);
     }
   }, [accounts]);
@@ -179,7 +176,6 @@ function PersonalInfo() {
         </Grid>
       </Grid>
 
-      {/* Title */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Personal Information
       </Typography>
@@ -197,18 +193,11 @@ function PersonalInfo() {
           backgroundColor: "#ffffff",
           borderRadius: 2,
           width: "100%",
-          overflowX: "hidden",
         }}
       >
-        <Grid
-          container
-          spacing={3}
-          wrap="wrap"
-          alignItems="flex-start"
-          justifyContent="flex-start"
-        >
-          {/* Full Name */}
-          <Grid item xs={12} sm={6} lg={4}>
+        <Grid container spacing={3}>
+          {/* Row 1 */}
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Full Name"
@@ -221,8 +210,7 @@ function PersonalInfo() {
             />
           </Grid>
 
-          {/* Employee ID */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Employee ID"
@@ -235,8 +223,7 @@ function PersonalInfo() {
             />
           </Grid>
 
-          {/* Phone */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Phone"
@@ -249,8 +236,8 @@ function PersonalInfo() {
             />
           </Grid>
 
-          {/* Personal Email */}
-          <Grid item xs={12} sm={6} lg={4}>
+          {/* Row 2 */}
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Personal Email"
@@ -260,8 +247,7 @@ function PersonalInfo() {
             />
           </Grid>
 
-          {/* Marital Status */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth
@@ -277,24 +263,7 @@ function PersonalInfo() {
             </TextField>
           </Grid>
 
-          {/* Gender */}
-          <Grid item xs={12} sm={6} lg={4}>
-            <TextField
-              select
-              fullWidth
-              label="Gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-            >
-              <MenuItem value="Male">Male</MenuItem>
-              <MenuItem value="Female">Female</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </TextField>
-          </Grid>
-
-          {/* Educational Level */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth
@@ -311,8 +280,24 @@ function PersonalInfo() {
             </TextField>
           </Grid>
 
+          {/* Row 3 */}
+          <Grid item xs={12} md={4}>
+            <TextField
+              select
+              fullWidth
+              label="Gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+            >
+              <MenuItem value="Male">Male</MenuItem>
+              <MenuItem value="Female">Female</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </TextField>
+          </Grid>
+
           {/* Update Button */}
-          <Grid item xs={12} textAlign="right">
+          <Grid item xs={12} textAlign="right" mt={2}>
             <Button
               variant="contained"
               color="success"
