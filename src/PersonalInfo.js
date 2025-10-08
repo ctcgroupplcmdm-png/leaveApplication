@@ -144,10 +144,7 @@ function PersonalInfo() {
       </Box>
     );
 
-  const fieldStyle = {
-    "& .MuiInputLabel-root": { whiteSpace: "normal" },
-    "& .MuiInputBase-root": { minHeight: 56 },
-  };
+  
 
   const logout = () => instance.logoutRedirect();
 
