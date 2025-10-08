@@ -203,7 +203,7 @@ function PersonalInfo() {
       >
         <Grid container spacing={3}>
   {/* Full Name */}
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={6} lg={4}>
     <TextField
       fullWidth
       label="Full Name"
@@ -217,7 +217,7 @@ function PersonalInfo() {
   </Grid>
 
   {/* Employee ID */}
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={6} lg={4}>
     <TextField
       fullWidth
       label="Employee ID"
@@ -231,7 +231,7 @@ function PersonalInfo() {
   </Grid>
 
   {/* Phone */}
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={6} lg={4}>
     <TextField
       fullWidth
       label="Phone"
@@ -245,7 +245,7 @@ function PersonalInfo() {
   </Grid>
 
   {/* Personal Email */}
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={6} lg={4}>
     <TextField
       fullWidth
       label="Personal Email"
@@ -256,7 +256,7 @@ function PersonalInfo() {
   </Grid>
 
   {/* Marital Status */}
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={6} lg={4}>
     <TextField
       select
       fullWidth
@@ -273,7 +273,7 @@ function PersonalInfo() {
   </Grid>
 
   {/* Gender */}
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={6} lg={4}>
     <TextField
       select
       fullWidth
@@ -289,7 +289,7 @@ function PersonalInfo() {
   </Grid>
 
   {/* Educational Level */}
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={6} lg={4}>
     <TextField
       select
       fullWidth
@@ -318,6 +318,7 @@ function PersonalInfo() {
     </Button>
   </Grid>
 </Grid>
+
 
       </Paper>
 
