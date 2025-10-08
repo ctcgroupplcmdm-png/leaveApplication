@@ -298,23 +298,33 @@ function PersonalInfo() {
           </Grid>
 
           {/* Educational Level */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Educational Level"
-              name="educationLevel"
-              value={formData.educationLevel || ""}
-              onChange={handleChange}
-              sx={fieldStyle}
-            >
-              <MenuItem value="High School">High School</MenuItem>
-              <MenuItem value="Diploma">Diploma</MenuItem>
-              <MenuItem value="Bachelors Degree">Bachelors Degree</MenuItem>
-              <MenuItem value="Masters Degree">Masters Degree</MenuItem>
-              <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
-            </TextField>
-          </Grid>
+<Grid item xs={12} sm={6} md={4}>
+  <TextField
+    select
+    fullWidth
+    label="Educational Level"
+    name="educationLevel"
+    value={formData.educationLevel || ""}
+    onChange={handleChange}
+    sx={{
+      "& .MuiInputLabel-root": {
+        overflow: "visible",
+        whiteSpace: "normal",
+        textOverflow: "unset",
+        lineHeight: 1.2,
+        maxWidth: "100%",
+      },
+      "& .MuiInputBase-root": { minHeight: 56 },
+    }}
+  >
+    <MenuItem value="High School">High School</MenuItem>
+    <MenuItem value="Diploma">Diploma</MenuItem>
+    <MenuItem value="Bachelors Degree">Bachelors Degree</MenuItem>
+    <MenuItem value="Masters Degree">Masters Degree</MenuItem>
+    <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
+  </TextField>
+</Grid>
+
 
           {/* Update Button */}
           <Grid item xs={12} textAlign="right">
