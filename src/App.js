@@ -4,7 +4,7 @@ import { loginRequest } from "./authConfig";
 import UserInfo from "./UserInfo";
 import LandingPage from "./LandingPage";
 import PersonalInfo from "./PersonalInfo";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography, Paper } from "@mui/material";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -14,7 +14,6 @@ function App() {
 
   const login = () => instance.loginRedirect(loginRequest);
 
-  // ✅ Make logout stable using useCallback
   const logout = useCallback(() => {
     instance.logoutRedirect();
   }, [instance]);
@@ -33,31 +32,25 @@ function App() {
 
     const events = ["mousemove", "mousedown", "keypress", "touchstart", "scroll"];
     events.forEach((event) => window.addEventListener(event, resetTimer));
-
-    resetTimer(); // initialize timer on mount
+    resetTimer();
 
     return () => {
       events.forEach((event) => window.removeEventListener(event, resetTimer));
       if (idleTimer.current) clearTimeout(idleTimer.current);
     };
-  }, [accounts, logout, IDLE_TIMEOUT]); // ✅ all dependencies stable
+  }, [accounts, logout, IDLE_TIMEOUT]);
 
   return (
     <Router>
       <Box sx={{ backgroundColor: "#f8fafc", minHeight: "100vh" }}>
         {accounts.length > 0 ? (
           <Routes>
-            {/* 🏠 Landing Page */}
             <Route path="/" element={<LandingPage onLogout={logout} />} />
-
-            {/* 🗓 Annual Leave Page */}
             <Route path="/annual-leave" element={<UserInfo onLogout={logout} />} />
-
-            {/* 👤 Personal Info Page */}
             <Route path="/personal-info" element={<PersonalInfo onLogout={logout} />} />
           </Routes>
         ) : (
-          // 🔒 Login screen
+          // 🔒 Styled Login Screen
           <Box
             sx={{
               display: "flex",
@@ -65,15 +58,59 @@ function App() {
               alignItems: "center",
               justifyContent: "center",
               height: "100vh",
+              background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+              textAlign: "center",
             }}
           >
-            <Button
-              onClick={login}
-              variant="contained"
-              sx={{ textTransform: "none", fontSize: "1rem", px: 4, py: 1.5 }}
+            <Paper
+              elevation={4}
+              sx={{
+                p: 5,
+                borderRadius: 3,
+                textAlign: "center",
+                maxWidth: 400,
+                width: "90%",
+                backgroundColor: "#ffffffdd",
+              }}
             >
-              Login
-            </Button>
+              <img
+                src={require("./assets/logos/ctc.png")}
+                alt="CTC Group"
+                style={{ width: 120, height: "auto", marginBottom: 20 }}
+              />
+
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+                Welcome to CTC Group Portal
+              </Typography>
+
+              <Typography variant="body2" color="text.secondary" mb={4}>
+                Access your employee dashboard, leave records, and personal information
+                securely with your Microsoft account.
+              </Typography>
+
+              <Button
+                onClick={login}
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  fontSize: "1rem",
+                  px: 5,
+                  py: 1.2,
+                  fontWeight: "bold",
+                  borderRadius: 2,
+                }}
+              >
+                Login
+              </Button>
+            </Paper>
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ position: "absolute", bottom: 20 }}
+            >
+              © {new Date().getFullYear()} Cyprus Trading Corporation Plc. All rights reserved.
+            </Typography>
           </Box>
         )}
       </Box>
