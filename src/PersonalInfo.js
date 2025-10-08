@@ -30,7 +30,7 @@ const companyLogos = {
 function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
-  const originalData = useRef(null); // keep original data for change detection
+  const originalData = useRef(null); // keep original data for comparison
 
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
@@ -82,7 +82,7 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // ✅ Compare form with original to detect real changes
+  // ✅ Detect real changes
   const hasChanges = (current, original) => {
     return Object.keys(current).some(
       (key) => key !== "companyName" && current[key] !== original[key]
@@ -120,7 +120,7 @@ function PersonalInfo() {
           severity: "success",
         });
         setChanged(false);
-        originalData.current = formData; // reset reference
+        originalData.current = formData;
       })
       .catch(() =>
         setSnackbar({
@@ -193,18 +193,18 @@ function PersonalInfo() {
 
       {/* Form */}
       <Paper
-        elevation={2}
+        elevation={3}
         sx={{
           mt: 4,
           p: 4,
           backgroundColor: "#ffffff",
           borderRadius: 2,
-          maxWidth: "100%",
+          width: "100%",
         }}
       >
         <Grid container spacing={3}>
           {/* Full Name */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Full Name"
@@ -218,7 +218,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Employee ID */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Employee ID"
@@ -232,7 +232,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Phone */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Phone"
@@ -246,7 +246,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Personal Email */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               fullWidth
               label="Personal Email"
@@ -257,7 +257,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Marital Status */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
@@ -274,7 +274,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Gender */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
@@ -290,7 +290,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Education Level */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
               select
               fullWidth
