@@ -205,139 +205,123 @@ function PersonalInfo() {
         }}
       >
         <Grid container spacing={3}>
-          {/* Full Name */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              label="Full Name"
-              name="fullName"
-              value={formData.fullName}
-              sx={fieldStyle}
-              InputProps={{
-                readOnly: true,
-                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
-              }}
-            />
-          </Grid>
+  {/* Full Name */}
+  <Grid item xs={12} sm={6}>
+    <TextField
+      fullWidth
+      label="Full Name"
+      name="fullName"
+      value={formData.fullName}
+      InputProps={{
+        readOnly: true,
+        style: { backgroundColor: "#f5f5f5", userSelect: "none" },
+      }}
+    />
+  </Grid>
 
-          {/* Employee ID */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              label="Employee ID"
-              name="employeeId"
-              value={formData.employeeId}
-              sx={fieldStyle}
-              InputProps={{
-                readOnly: true,
-                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
-              }}
-            />
-          </Grid>
+  {/* Employee ID */}
+  <Grid item xs={12} sm={6}>
+    <TextField
+      fullWidth
+      label="Employee ID"
+      name="employeeId"
+      value={formData.employeeId}
+      InputProps={{
+        readOnly: true,
+        style: { backgroundColor: "#f5f5f5", userSelect: "none" },
+      }}
+    />
+  </Grid>
 
-          {/* Phone */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              label="Phone"
-              name="phone"
-              value={formData.phone}
-              sx={fieldStyle}
-              InputProps={{
-                readOnly: true,
-                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
-              }}
-            />
-          </Grid>
+  {/* Phone */}
+  <Grid item xs={12} sm={6}>
+    <TextField
+      fullWidth
+      label="Phone"
+      name="phone"
+      value={formData.phone}
+      InputProps={{
+        readOnly: true,
+        style: { backgroundColor: "#f5f5f5", userSelect: "none" },
+      }}
+    />
+  </Grid>
 
-          {/* Personal Email */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              label="Personal Email"
-              name="personalEmail"
-              value={formData.personalEmail}
-              onChange={handleChange}
-              sx={fieldStyle}
-            />
-          </Grid>
+  {/* Personal Email */}
+  <Grid item xs={12} sm={6}>
+    <TextField
+      fullWidth
+      label="Personal Email"
+      name="personalEmail"
+      value={formData.personalEmail}
+      onChange={handleChange}
+    />
+  </Grid>
 
-          {/* Marital Status */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Marital Status"
-              name="maritalStatus"
-              value={formData.maritalStatus}
-              onChange={handleChange}
-              sx={fieldStyle}
-            >
-              <MenuItem value="Married">Married</MenuItem>
-              <MenuItem value="Not married">Not married</MenuItem>
-              <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
-              <MenuItem value="Divorced">Divorced</MenuItem>
-            </TextField>
-          </Grid>
+  {/* Marital Status */}
+  <Grid item xs={12} sm={6}>
+    <TextField
+      select
+      fullWidth
+      label="Marital Status"
+      name="maritalStatus"
+      value={formData.maritalStatus}
+      onChange={handleChange}
+    >
+      <MenuItem value="Married">Married</MenuItem>
+      <MenuItem value="Not married">Not married</MenuItem>
+      <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
+      <MenuItem value="Divorced">Divorced</MenuItem>
+    </TextField>
+  </Grid>
 
-          {/* Gender */}
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              sx={fieldStyle}
-            >
-              <MenuItem value="Male">Male</MenuItem>
-              <MenuItem value="Female">Female</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </TextField>
-          </Grid>
+  {/* Gender */}
+  <Grid item xs={12} sm={6}>
+    <TextField
+      select
+      fullWidth
+      label="Gender"
+      name="gender"
+      value={formData.gender}
+      onChange={handleChange}
+    >
+      <MenuItem value="Male">Male</MenuItem>
+      <MenuItem value="Female">Female</MenuItem>
+      <MenuItem value="Other">Other</MenuItem>
+    </TextField>
+  </Grid>
 
-          {/* Educational Level */}
-<Grid item xs={12} sm={6} md={4}>
-  <TextField
-    select
-    fullWidth
-    label="Educational Level"
-    name="educationLevel"
-    value={formData.educationLevel || ""}
-    onChange={handleChange}
-    sx={{
-      "& .MuiInputLabel-root": {
-        overflow: "visible",
-        whiteSpace: "normal",
-        textOverflow: "unset",
-        lineHeight: 1.2,
-        maxWidth: "100%",
-      },
-      "& .MuiInputBase-root": { minHeight: 56 },
-    }}
-  >
-    <MenuItem value="High School">High School</MenuItem>
-    <MenuItem value="Diploma">Diploma</MenuItem>
-    <MenuItem value="Bachelors Degree">Bachelors Degree</MenuItem>
-    <MenuItem value="Masters Degree">Masters Degree</MenuItem>
-    <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
-  </TextField>
+  {/* Educational Level */}
+  <Grid item xs={12} sm={6}>
+    <TextField
+      select
+      fullWidth
+      label="Educational Level"
+      name="educationLevel"
+      value={formData.educationLevel || ""}
+      onChange={handleChange}
+    >
+      <MenuItem value="High School">High School</MenuItem>
+      <MenuItem value="Diploma">Diploma</MenuItem>
+      <MenuItem value="Bachelors Degree">Bachelors Degree</MenuItem>
+      <MenuItem value="Masters Degree">Masters Degree</MenuItem>
+      <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
+    </TextField>
+  </Grid>
+
+  {/* Update Button */}
+  <Grid item xs={12} textAlign="right">
+    <Button
+      variant="contained"
+      color="success"
+      disabled={!changed || loading}
+      onClick={handleUpdate}
+    >
+      {loading ? <CircularProgress size={24} /> : "Update Information"}
+    </Button>
+  </Grid>
 </Grid>
 
-
-          {/* Update Button */}
-          <Grid item xs={12} textAlign="right">
-            <Button
-              variant="contained"
-              color="success"
-              disabled={!changed || loading}
-              onClick={handleUpdate}
-            >
-              {loading ? <CircularProgress size={24} /> : "Update Information"}
-            </Button>
-          </Grid>
-        </Grid>
       </Paper>
 
       {/* Snackbar */}
