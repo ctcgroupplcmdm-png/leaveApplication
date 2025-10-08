@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
 import UserInfo from "./UserInfo";
@@ -13,7 +13,11 @@ function App() {
   const IDLE_TIMEOUT = 10 * 60 * 1000; // ⏱ 10 minutes
 
   const login = () => instance.loginRedirect(loginRequest);
-  const logout = () => instance.logoutRedirect();
+
+  // ✅ Make logout stable using useCallback
+  const logout = useCallback(() => {
+    instance.logoutRedirect();
+  }, [instance]);
 
   // 🕒 Logout automatically after 10 minutes of inactivity
   useEffect(() => {
@@ -30,13 +34,13 @@ function App() {
     const events = ["mousemove", "mousedown", "keypress", "touchstart", "scroll"];
     events.forEach((event) => window.addEventListener(event, resetTimer));
 
-    resetTimer(); // initialize timer when component mounts
+    resetTimer(); // initialize timer on mount
 
     return () => {
       events.forEach((event) => window.removeEventListener(event, resetTimer));
       if (idleTimer.current) clearTimeout(idleTimer.current);
     };
-  }, [accounts, logout, IDLE_TIMEOUT]); // ✅ Lint-clean dependency array
+  }, [accounts, logout, IDLE_TIMEOUT]); // ✅ all dependencies stable
 
   return (
     <Router>
