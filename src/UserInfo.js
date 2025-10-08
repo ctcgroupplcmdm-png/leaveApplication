@@ -203,14 +203,7 @@ function UserInfo() {
 
         {/* Stats + Back + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => navigate("/")}
-            sx={{ mr: 2 }}
-          >
-            ← Back
-          </Button>
+          
           <Chip
             label={`${remainingBalance?.annualAllowance || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
@@ -220,6 +213,14 @@ function UserInfo() {
             color="primary"
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
+		  <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate("/")}
+            sx={{ mr: 2 }}
+          >
+            ← Back
+          </Button>
           <Button variant="outlined" color="error" onClick={logout}>
             Logout
           </Button>
