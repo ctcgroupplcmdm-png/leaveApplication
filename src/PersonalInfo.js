@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   Box,
@@ -30,6 +30,7 @@ const companyLogos = {
 function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
+  const originalData = useRef(null); // keep original data for change detection
 
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
@@ -52,6 +53,7 @@ function PersonalInfo() {
   const url =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
 
+  // ✅ Fetch user info
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(url, {
@@ -61,8 +63,7 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
-        setUserData(data);
-        setFormData({
+        const normalized = {
           fullName: data.FullName || "",
           employeeId: data.EmployeeId?.toString() || "",
           phone: data.Phone?.toString() || "",
@@ -70,18 +71,32 @@ function PersonalInfo() {
           maritalStatus: data["Marital Status"] || "",
           educationLevel: data.EducationalLevel || "",
           gender: data.Gender || "",
-        });
+          companyName: data.companyName || "Company",
+        };
+
+        setUserData(normalized);
+        setFormData(normalized);
+        originalData.current = normalized;
       })
       .catch((err) => console.error("Error fetching info:", err))
       .finally(() => setLoading(false));
   };
 
-  const handleChange = (e) => {
-    setChanged(true);
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // ✅ Compare form with original to detect real changes
+  const hasChanges = (current, original) => {
+    return Object.keys(current).some(
+      (key) => key !== "companyName" && current[key] !== original[key]
+    );
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const updated = { ...formData, [name]: value };
+    setFormData(updated);
+    setChanged(hasChanges(updated, originalData.current));
+  };
+
+  // ✅ Update info
   const handleUpdate = () => {
     if (!changed) return;
     const account = accounts[0];
@@ -105,6 +120,7 @@ function PersonalInfo() {
           severity: "success",
         });
         setChanged(false);
+        originalData.current = formData; // reset reference
       })
       .catch(() =>
         setSnackbar({
@@ -152,7 +168,7 @@ function PersonalInfo() {
             />
           )}
           <Typography variant="h6" fontWeight="bold">
-            {userData.companyName || "Company"}
+            {userData.companyName}
           </Typography>
         </Grid>
 
@@ -188,7 +204,7 @@ function PersonalInfo() {
       >
         <Grid container spacing={3}>
           {/* Full Name */}
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Full Name"
@@ -202,7 +218,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Employee ID */}
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Employee ID"
@@ -216,7 +232,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Phone */}
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Phone"
@@ -230,7 +246,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Personal Email */}
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Personal Email"
@@ -241,7 +257,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Marital Status */}
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth
@@ -258,7 +274,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Gender */}
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth
@@ -274,7 +290,7 @@ function PersonalInfo() {
           </Grid>
 
           {/* Education Level */}
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth
