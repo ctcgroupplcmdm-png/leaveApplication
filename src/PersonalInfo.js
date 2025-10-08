@@ -39,7 +39,7 @@ function PersonalInfo() {
     phone: "",
     personalEmail: "",
     maritalStatus: "",
-    educationalLevel: "",
+    educationLevel: "",
     gender: "",
   });
   const [loading, setLoading] = useState(false);
@@ -68,7 +68,7 @@ function PersonalInfo() {
           phone: data.Phone?.toString() || "",
           personalEmail: data.PersonalEmail || "",
           maritalStatus: data["Marital Status"] || "",
-          educationalLevel: data.["EducationalLevel"] || "",
+          educationLevel: data.EducationalLevel || "",
           gender: data.Gender || "",
           companyName: data.companyName || "Company",
         };
@@ -299,8 +299,8 @@ function PersonalInfo() {
               select
               fullWidth
               label="Educational Level"
-              name="educationalLevel"
-              value={formData.educationalLevel || ""}
+              name="educationLevel"
+              value={formData.educationLevel || ""}
               onChange={handleChange}
             >
               <MenuItem value="High School">High School</MenuItem>
