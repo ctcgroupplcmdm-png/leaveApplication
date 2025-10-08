@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
 import UserInfo from "./UserInfo";
@@ -9,9 +9,35 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   const { instance, accounts } = useMsal();
+  const idleTimer = useRef(null);
+  const IDLE_TIMEOUT = 10 * 60 * 1000; // ⏱ 10 minutes in ms
 
   const login = () => instance.loginRedirect(loginRequest);
   const logout = () => instance.logoutRedirect();
+
+  // 🕒 Logout automatically after 10 minutes of inactivity
+  useEffect(() => {
+    const resetTimer = () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      idleTimer.current = setTimeout(() => {
+        if (accounts.length > 0) {
+          console.log("⏰ Idle timeout reached — logging out");
+          logout();
+        }
+      }, IDLE_TIMEOUT);
+    };
+
+    // Events that reset idle timer
+    const events = ["mousemove", "mousedown", "keypress", "touchstart", "scroll"];
+    events.forEach((event) => window.addEventListener(event, resetTimer));
+
+    resetTimer(); // initialize timer on mount
+
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, resetTimer));
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+    };
+  }, [accounts]); // re-init when user logs in/out
 
   return (
     <Router>
@@ -28,7 +54,7 @@ function App() {
             <Route path="/personal-info" element={<PersonalInfo onLogout={logout} />} />
           </Routes>
         ) : (
-          // 🔒 Login Screen
+          // 🔒 Login screen
           <Box
             sx={{
               display: "flex",
