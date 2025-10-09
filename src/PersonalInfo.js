@@ -28,7 +28,7 @@ const companyLogos = {
   "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
 };
 
-// 🔽 Nationality options
+// 🔽 Nationality Options (Full List)
 const NATIONALITY_OPTIONS = [
   "Cyprus", "Åland Islands", "Albania", "Andorra", "Armenia", "Austria", "Azerbaijan",
   "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia", "Czech Republic",
@@ -40,6 +40,7 @@ const NATIONALITY_OPTIONS = [
   "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom", "Vatican City"
 ];
 
+// Helper to add current value if missing
 const withCurrentOption = (options, current) => {
   if (!current) return options;
   return options.includes(current) ? options : [current, ...options];
@@ -49,6 +50,7 @@ function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
   const originalData = useRef(null);
+
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -79,7 +81,6 @@ function PersonalInfo() {
     severity: "success",
   });
 
-  // 🆕 Address management
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState(["Omonoias", "Archangelou", "Other"]);
 
@@ -149,7 +150,7 @@ function PersonalInfo() {
     }
   };
 
-  // 🕒 Postal code watcher
+  // 🕒 Watch postal code for address lookup
   useEffect(() => {
     if (formData.postalCode && formData.postalCode.length === 4) {
       fetchAddressesByPostalCode(formData.postalCode);
@@ -200,7 +201,7 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // Initial data
+  // Initial load
   useEffect(() => {
     if (accounts.length > 0) {
       const oid = accounts[0]?.idTokenClaims?.oid || accounts[0]?.idTokenClaims?.sub;
@@ -217,6 +218,7 @@ function PersonalInfo() {
 
   const logout = () => instance.logoutRedirect();
   const nationalityOptions = withCurrentOption(NATIONALITY_OPTIONS, formData.nationality);
+  const streetDropdownOptions = withCurrentOption(streetOptions, formData.streetAddress);
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
@@ -253,10 +255,58 @@ function PersonalInfo() {
         Employee ID: {formData.employeeId}
       </Typography>
 
-      {/* Main form */}
+      {/* Main Form */}
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
-        {/* 🪪 Identification Details */}
-        <Paper elevation={1} sx={{ p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}>
+        {/* Readonly Core Info */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <TextField fullWidth label="Full Name" name="fullName" value={formData.fullName} InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField fullWidth label="Employee ID" name="employeeId" value={formData.employeeId} InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField fullWidth label="Phone" name="phone" value={formData.phone} InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }} />
+          </Grid>
+        </Grid>
+
+        {/* Editable Info */}
+        <Grid container spacing={3} mt={1}>
+          <Grid item xs={12} md={4}>
+            <TextField fullWidth label="Personal Email" name="personalEmail" value={formData.personalEmail} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField select fullWidth label="Marital Status" name="maritalStatus" value={formData.maritalStatus || ""} onChange={handleChange}>
+              <MenuItem value="Married">Married</MenuItem>
+              <MenuItem value="Not married">Not married</MenuItem>
+              <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
+              <MenuItem value="Divorced">Divorced</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField select fullWidth label="Education Level" name="educationLevel" value={formData.educationLevel || ""} onChange={handleChange}>
+              <MenuItem value="High School">High School</MenuItem>
+              <MenuItem value="Diploma">Diploma</MenuItem>
+              <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
+              <MenuItem value="Masters Degree">Masters Degree</MenuItem>
+              <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
+
+        {/* Gender */}
+        <Grid container spacing={3} mt={1}>
+          <Grid item xs={12} md={4}>
+            <TextField select fullWidth label="Gender" name="gender" value={formData.gender || ""} onChange={handleChange}>
+              <MenuItem value="Male">Male</MenuItem>
+              <MenuItem value="Female">Female</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
+
+        {/* 🪪 Identification */}
+        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🪪 Identification Details
           </Typography>
@@ -266,7 +316,15 @@ function PersonalInfo() {
               <TextField fullWidth label="National ID Number" name="nationalId" value={formData.nationalId} onChange={handleChange} />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth type="date" label="National ID Expiration Date" name="nationalIdExpiration" value={formData.nationalIdExpiration || ""} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+              <TextField
+                fullWidth
+                type="date"
+                label="National ID Expiration Date"
+                name="nationalIdExpiration"
+                value={formData.nationalIdExpiration || ""}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField select fullWidth label="Nationality" name="nationality" value={formData.nationality || ""} onChange={handleChange}>
@@ -280,7 +338,7 @@ function PersonalInfo() {
           </Grid>
         </Paper>
 
-        {/* 🏠 Residential Address */}
+        {/* 🏠 Address */}
         <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🏠 Residential Address
@@ -295,7 +353,6 @@ function PersonalInfo() {
                 name="streetAddress"
                 value={formData.streetAddress || ""}
                 onChange={handleChange}
-                SelectProps={{ displayEmpty: true }}
                 InputProps={{
                   endAdornment: addressLoading ? (
                     <InputAdornment position="end">
@@ -304,14 +361,13 @@ function PersonalInfo() {
                   ) : null,
                 }}
               >
-                {streetOptions.map((s) => (
+                {streetDropdownOptions.map((s) => (
                   <MenuItem key={s} value={s}>
                     {s}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
-
             <Grid item xs={12} md={3}>
               <TextField fullWidth label="Street Number" name="streetNumber" value={formData.streetNumber} onChange={handleChange} />
             </Grid>
@@ -333,9 +389,12 @@ function PersonalInfo() {
           </Grid>
         </Paper>
 
-        {/* ✅ Update Button */}
-        <Grid container spacing={3} mt={3} alignItems="center">
-          <Grid item xs={12} textAlign="right">
+        {/* ☎️ Emergency Contact */}
+        <Grid container spacing={3} mt={3}>
+          <Grid item xs={12} md={6}>
+            <TextField fullWidth label="Emergency Contact Name / Number" name="emergencyContact" value={formData.emergencyContact} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12} md={6} textAlign="right">
             <Button variant="contained" color="success" disabled={!changed || loading} onClick={handleUpdate}>
               {loading ? <CircularProgress size={24} /> : "Update Information"}
             </Button>
