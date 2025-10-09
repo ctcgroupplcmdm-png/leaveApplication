@@ -28,16 +28,15 @@ const companyLogos = {
   "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
 };
 
-// 🔽 Nationality options (trimmed EU + nearby for brevity; extend as needed)
+// 🔽 Nationality options
 const NATIONALITY_OPTIONS = [
   "Cyprus", "Åland Islands", "Albania", "Andorra", "Armenia", "Austria", "Azerbaijan",
   "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia", "Czech Republic",
-  "Denmark", "Estonia", "Faroe Islands", "Finland", "France", "Georgia", "Germany",
-  "Gibraltar", "Greece", "Guernsey", "Hungary", "Iceland", "Ireland", "Isle of Man",
-  "Italy", "Jersey", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Malta",
-  "Moldova", "Monaco", "Montenegro", "Netherlands", "North Macedonia", "Norway", "Poland",
-  "Portugal", "Romania", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain",
-  "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom", "Vatican City",
+  "Denmark", "Estonia", "Finland", "France", "Georgia", "Germany", "Greece",
+  "Hungary", "Iceland", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta",
+  "Moldova", "Monaco", "Montenegro", "Netherlands", "North Macedonia", "Norway",
+  "Poland", "Portugal", "Romania", "Serbia", "Slovakia", "Slovenia", "Spain",
+  "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom"
 ];
 
 const withCurrentOption = (options, current) => {
@@ -81,7 +80,6 @@ function PersonalInfo() {
     severity: "success",
   });
 
-  // Address fetch + mapping
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
@@ -102,13 +100,11 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
-        // Emergency contact fallback logic: if only number is returned under "Name"
         let ecName = data["Emergency Contact Name"] ?? "";
         let ecNumber = data["Emergency Contact Number"] ?? "";
 
         const ecNameStr = String(ecName ?? "");
         if (!ecNumber && /^\d{5,}$/.test(ecNameStr)) {
-          // looks like a phone number accidentally placed in Name
           ecNumber = ecNameStr;
           ecName = "";
         }
@@ -144,7 +140,6 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // ✅ Fetch addresses by postal code (when length is 4)
   const fetchAddressesByPostalCode = async (postalCode) => {
     if (postalCode.length < 4) return;
     setAddressLoading(true);
@@ -178,7 +173,6 @@ function PersonalInfo() {
     }
   }, [formData.postalCode]);
 
-  // change detection
   const hasChanges = (current, original) =>
     Object.keys(current).some(
       (key) => key !== "companyName" && (original?.[key] ?? "") !== (current?.[key] ?? "")
@@ -188,7 +182,6 @@ function PersonalInfo() {
     const { name, value } = e.target;
     let updated = { ...formData, [name]: value };
 
-    // When street changes, auto-fill area/city from the selected address
     if (name === "streetAddress") {
       const selected = addressMap.find((a) => a.Street === value);
       if (selected) {
@@ -200,7 +193,6 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // ✅ Update info (only if changed)
   const handleUpdate = () => {
     if (!changed) return;
     const account = accounts[0];
@@ -232,7 +224,6 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // initial load
   useEffect(() => {
     if (accounts.length > 0) {
       const oid = accounts[0]?.idTokenClaims?.oid || accounts[0]?.idTokenClaims?.sub;
@@ -248,8 +239,6 @@ function PersonalInfo() {
     );
 
   const logout = () => instance.logoutRedirect();
-
-  // options incl. current
   const nationalityOptions = withCurrentOption(NATIONALITY_OPTIONS, formData.nationality);
   const streetDropdownOptions = withCurrentOption(streetOptions, formData.streetAddress);
 
@@ -378,20 +367,10 @@ function PersonalInfo() {
         </Grid>
 
         {/* 🪪 Identification Details */}
-        <Paper
-          elevation={1}
-          sx={{
-            p: 3,
-            mt: 4,
-            backgroundColor: "#f9fafb",
-            borderRadius: 2,
-            border: "1px solid #e0e0e0",
-          }}
-        >
+        <Paper elevation={1} sx={{ p: 3, mt: 4, backgroundColor: "#f9fafb", borderRadius: 2 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🪪 Identification Details
           </Typography>
-
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
               <TextField
@@ -422,7 +401,7 @@ function PersonalInfo() {
                 value={formData.nationality || ""}
                 onChange={handleChange}
               >
-                {withCurrentOption(NATIONALITY_OPTIONS, formData.nationality).map((n) => (
+                {nationalityOptions.map((n) => (
                   <MenuItem key={n} value={n}>
                     {n}
                   </MenuItem>
@@ -433,15 +412,11 @@ function PersonalInfo() {
         </Paper>
 
         {/* 🏠 Residential Address */}
-        <Paper
-          elevation={1}
-          sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}
-        >
+        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🏠 Residential Address
           </Typography>
 
-          {/* Row 1: 5 fields on desktop */}
           <Grid container spacing={3}>
             <Grid item xs={12} md={2.4}>
               <TextField
@@ -469,7 +444,7 @@ function PersonalInfo() {
                   ) : null,
                 }}
               >
-                {withCurrentOption(streetOptions, formData.streetAddress).map((s) => (
+                {streetDropdownOptions.map((s) => (
                   <MenuItem key={s} value={s}>
                     {s}
                   </MenuItem>
@@ -493,7 +468,6 @@ function PersonalInfo() {
                 label="Area"
                 name="area"
                 value={formData.area}
-                onChange={handleChange}
                 disabled
               />
             </Grid>
@@ -504,12 +478,10 @@ function PersonalInfo() {
                 label="City"
                 name="city"
                 value={formData.city}
-                onChange={handleChange}
                 disabled
               />
             </Grid>
 
-            {/* Row 2: Apartment alone in first slot to keep 5-per-row rhythm, remaining empty slots are fine */}
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
