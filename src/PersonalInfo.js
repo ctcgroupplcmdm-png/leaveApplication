@@ -11,6 +11,7 @@ import {
   Snackbar,
   Alert,
   Paper,
+  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -33,15 +34,7 @@ function PersonalInfo() {
   const originalData = useRef(null);
 
   const [userData, setUserData] = useState(null);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    employeeId: "",
-    phone: "",
-    personalEmail: "",
-    maritalStatus: "",
-    educationLevel: "",
-    gender: "",
-  });
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [changed, setChanged] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -67,11 +60,21 @@ function PersonalInfo() {
           fullName: data.FullName || "",
           employeeId: data.EmployeeId?.toString() || "",
           phone: data.Phone?.toString() || "",
-          personalEmail: data.PersonalEmail || "",
+          personalEmail: data.PersonalEmail || data["Personal Email"] || "",
           maritalStatus: data["Marital Status"] || "",
           educationLevel: data.EducationalLevel || "",
           gender: data.Gender || "",
           companyName: data.companyName || "Company",
+          nationalId: data["National ID Number"] || "",
+          nationalIdExpiration: data["National ID Expiration Date"] || "",
+          nationality: data.Nationality || "",
+          postalCode: data["Postal Code"]?.toString() || "",
+          streetAddress: data["Street Address"] || "",
+          streetNumber: data["Street Number"]?.toString() || "",
+          apartment: data["Apartment "] || "",
+          area: data.Area || "",
+          city: data.City || "",
+          emergencyContact: data["Emergency Contact Name"]?.toString() || "",
         };
 
         setUserData(normalized);
@@ -82,12 +85,10 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // ✅ Detect real changes
-  const hasChanges = (current, original) => {
-    return Object.keys(current).some(
+  const hasChanges = (current, original) =>
+    Object.keys(current).some(
       (key) => key !== "companyName" && current[key] !== original[key]
     );
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,7 +97,6 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // ✅ Update info
   const handleUpdate = () => {
     if (!changed) return;
     const account = accounts[0];
@@ -106,17 +106,7 @@ function PersonalInfo() {
     fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        oid,
-        update: true,
-        FullName: formData.fullName,
-        EmployeeId: formData.employeeId,
-        Phone: formData.phone,
-        PersonalEmail: formData.personalEmail,
-        "Marital Status": formData.maritalStatus,
-        EducationalLevel: formData.educationLevel,
-        Gender: formData.gender,
-      }),
+      body: JSON.stringify({ oid, update: true, ...formData }),
     })
       .then((res) => res.json())
       .then(() => {
@@ -140,8 +130,7 @@ function PersonalInfo() {
 
   useEffect(() => {
     if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+      const oid = accounts[0]?.idTokenClaims?.oid;
       fetchUserInfo(oid);
     }
   }, [accounts]);
@@ -166,13 +155,15 @@ function PersonalInfo() {
         sx={{ mb: 3 }}
       >
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {userData?.companyName && companyLogos[userData.companyName] && (
-            <img
-              src={require(`./assets/logos/${companyLogos[userData.companyName]}`)}
-              alt={userData.companyName}
-              style={{ width: 60, height: 60, objectFit: "contain" }}
-            />
-          )}
+          <img
+            src={
+              companyLogos[userData.companyName]
+                ? require(`./assets/logos/${companyLogos[userData.companyName]}`)
+                : require("./assets/logos/ctc.png")
+            }
+            alt={userData.companyName}
+            style={{ width: 60, height: 60, objectFit: "contain" }}
+          />
           <Typography variant="h6" fontWeight="bold">
             {userData.companyName}
           </Typography>
@@ -192,74 +183,46 @@ function PersonalInfo() {
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Personal Information
       </Typography>
-
       <Typography variant="subtitle1" color="text.secondary" gutterBottom>
         Employee ID: {formData.employeeId}
       </Typography>
 
       {/* Form */}
-      <Paper
-        elevation={3}
-        sx={{
-          mt: 4,
-          p: 4,
-          backgroundColor: "#ffffff",
-          borderRadius: 2,
-          width: "100%",
-          overflowX: "hidden",
-        }}
-      >
-        <Grid
-          container
-          spacing={3}
-          wrap="wrap"
-          alignItems="flex-start"
-          justifyContent="flex-start"
-        >
-          {/* Full Name */}
-          <Grid item xs={12} sm={6} lg={4}>
+      <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
+        {/* Row 1 */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Full Name"
               name="fullName"
               value={formData.fullName}
-              InputProps={{
-                readOnly: true,
-                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
-              }}
+              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }}
             />
           </Grid>
-
-          {/* Employee ID */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Employee ID"
               name="employeeId"
               value={formData.employeeId}
-              InputProps={{
-                readOnly: true,
-                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
-              }}
+              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }}
             />
           </Grid>
-
-          {/* Phone */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Phone"
               name="phone"
               value={formData.phone}
-              InputProps={{
-                readOnly: true,
-                style: { backgroundColor: "#f5f5f5", userSelect: "none" },
-              }}
+              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }}
             />
           </Grid>
+        </Grid>
 
-          {/* Personal Email */}
-          <Grid item xs={12} sm={6} lg={4}>
+        {/* Row 2 */}
+        <Grid container spacing={3} mt={1}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Personal Email"
@@ -268,9 +231,7 @@ function PersonalInfo() {
               onChange={handleChange}
             />
           </Grid>
-
-          {/* Marital Status */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth
@@ -285,29 +246,11 @@ function PersonalInfo() {
               <MenuItem value="Divorced">Divorced</MenuItem>
             </TextField>
           </Grid>
-
-          {/* Gender */}
-          <Grid item xs={12} sm={6} lg={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               select
               fullWidth
-              label="Gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-            >
-              <MenuItem value="Male">Male</MenuItem>
-              <MenuItem value="Female">Female</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </TextField>
-          </Grid>
-
-          {/* Educational Level */}
-          <Grid item xs={12} sm={6} lg={4}>
-            <TextField
-              select
-              fullWidth
-              label="Educational Level"
+              label="Education Level"
               name="educationLevel"
               value={formData.educationLevel || ""}
               onChange={handleChange}
@@ -319,9 +262,139 @@ function PersonalInfo() {
               <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
             </TextField>
           </Grid>
+        </Grid>
 
-          {/* Update Button */}
-          <Grid item xs={12} textAlign="right">
+        {/* Row 3 */}
+        <Grid container spacing={3} mt={1}>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="National ID Number"
+              name="nationalId"
+              value={formData.nationalId}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              type="date"
+              label="National ID Expiration Date"
+              name="nationalIdExpiration"
+              value={formData.nationalIdExpiration || ""}
+              onChange={handleChange}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              select
+              fullWidth
+              label="Nationality"
+              name="nationality"
+              value={formData.nationality}
+              onChange={handleChange}
+            >
+              <MenuItem value="Cyprus">Cyprus</MenuItem>
+              <MenuItem value="Greece">Greece</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
+
+        {/* Residential Address Section */}
+        <Paper
+          elevation={1}
+          sx={{
+            mt: 4,
+            p: 3,
+            backgroundColor: "#f9fafb",
+            borderRadius: 2,
+            border: "1px solid #e0e0e0",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            🏠 Residential Address
+          </Typography>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                label="Street Address"
+                name="streetAddress"
+                value={formData.streetAddress}
+                onChange={handleChange}
+              >
+                <MenuItem value="Omonoias">Omonoias</MenuItem>
+                <MenuItem value="Archangelou">Archangelou</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                label="Street Number"
+                name="streetNumber"
+                value={formData.streetNumber}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth
+                label="Apartment"
+                name="apartment"
+                value={formData.apartment}
+                onChange={handleChange}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={3} mt={1}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Area"
+                name="area"
+                value={formData.area}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="City"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Postal Code"
+                name="postalCode"
+                value={formData.postalCode}
+                onChange={handleChange}
+              />
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Final Row */}
+        <Grid container spacing={3} mt={3} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Emergency Contact Name / Number"
+              name="emergencyContact"
+              value={formData.emergencyContact}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={12} md={6} textAlign="right">
             <Button
               variant="contained"
               color="success"
