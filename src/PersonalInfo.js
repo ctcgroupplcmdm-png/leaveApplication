@@ -195,6 +195,39 @@ function PersonalInfo() {
 
   const handleUpdate = () => {
     if (!changed) return;
+
+    // ✅ Validate all required fields (except optional ones)
+    const requiredFields = [
+      "fullName",
+      "employeeId",
+      "phone",
+      "personalEmail",
+      "maritalStatus",
+      "educationLevel",
+      "gender",
+      "nationalId",
+      "nationality",
+      "postalCode",
+      "streetAddress",
+      "streetNumber",
+      "area",
+      "city",
+      "apartment",
+      "emergencyContactName",
+      "emergencyContactNumber",
+    ];
+
+    const missing = requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "");
+
+    if (missing.length > 0) {
+      setSnackbar({
+        open: true,
+        message: "Please fill in all required fields before updating.",
+        severity: "error",
+      });
+      return;
+    }
+
     const account = accounts[0];
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
@@ -223,6 +256,7 @@ function PersonalInfo() {
       )
       .finally(() => setLoading(false));
   };
+
 
   useEffect(() => {
     if (accounts.length > 0) {
