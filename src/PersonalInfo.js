@@ -266,6 +266,61 @@ function PersonalInfo() {
       </Typography>
 
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
+        {/* 🪪 Identification Details */}
+        <Paper
+          elevation={1}
+          sx={{
+            p: 3,
+            mb: 4,
+            backgroundColor: "#f9fafb",
+            borderRadius: 2,
+            border: "1px solid #e0e0e0",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            🪪 Identification Details
+          </Typography>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="National ID Number"
+                name="nationalId"
+                value={formData.nationalId}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="date"
+                label="National ID Expiration Date"
+                name="nationalIdExpiration"
+                value={formData.nationalIdExpiration || ""}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Nationality"
+                name="nationality"
+                value={formData.nationality || ""}
+                onChange={handleChange}
+              >
+                {nationalityOptions.map((n) => (
+                  <MenuItem key={n} value={n}>
+                    {n}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
+        </Paper>
+
         {/* 🏠 Residential Address */}
         <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
