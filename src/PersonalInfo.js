@@ -28,10 +28,18 @@ const companyLogos = {
   "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
 };
 
-// 🔽 Nationality options (same as yours)
-const NATIONALITY_OPTIONS = ["Cyprus", "Greece", "United Kingdom", "Other"];
+// 🔽 Nationality options
+const NATIONALITY_OPTIONS = [
+  "Cyprus", "Åland Islands", "Albania", "Andorra", "Armenia", "Austria", "Azerbaijan",
+  "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia", "Czech Republic",
+  "Denmark", "Estonia", "Faroe Islands", "Finland", "France", "Georgia", "Germany",
+  "Gibraltar", "Greece", "Guernsey", "Hungary", "Iceland", "Ireland", "Isle of Man",
+  "Italy", "Jersey", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Malta",
+  "Moldova", "Monaco", "Montenegro", "Netherlands", "North Macedonia", "Norway", "Poland",
+  "Portugal", "Romania", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain",
+  "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom", "Vatican City"
+];
 
-// Helper: include current value from flow if not already in options
 const withCurrentOption = (options, current) => {
   if (!current) return options;
   return options.includes(current) ? options : [current, ...options];
@@ -41,7 +49,6 @@ function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
   const originalData = useRef(null);
-
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -72,7 +79,7 @@ function PersonalInfo() {
     severity: "success",
   });
 
-  // 🆕 Address dropdown management
+  // 🆕 Address management
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState(["Omonoias", "Archangelou", "Other"]);
 
@@ -112,7 +119,6 @@ function PersonalInfo() {
           city: data.City || "",
           emergencyContact: data["Emergency Contact Name"]?.toString() || "",
         };
-
         setUserData({ companyName: normalized.companyName });
         setFormData(normalized);
         originalData.current = normalized;
@@ -133,11 +139,8 @@ function PersonalInfo() {
         body: JSON.stringify({ postalCode }),
       });
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setStreetOptions(data);
-      } else {
-        setStreetOptions(["No addresses found"]);
-      }
+      if (Array.isArray(data) && data.length > 0) setStreetOptions(data);
+      else setStreetOptions(["No addresses found"]);
     } catch (err) {
       console.error("Address lookup error:", err);
       setStreetOptions(["Error retrieving addresses"]);
@@ -146,14 +149,14 @@ function PersonalInfo() {
     }
   };
 
-  // ✅ Detect postal code change
+  // 🕒 Postal code watcher
   useEffect(() => {
     if (formData.postalCode && formData.postalCode.length === 4) {
       fetchAddressesByPostalCode(formData.postalCode);
     }
   }, [formData.postalCode]);
 
-  // Compare to detect real changes
+  // Detect changes
   const hasChanges = (current, original) =>
     Object.keys(current).some(
       (key) => key !== "companyName" && (original?.[key] ?? "") !== (current?.[key] ?? "")
@@ -166,7 +169,7 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // ✅ Update info (only when there are real changes)
+  // ✅ Update info
   const handleUpdate = () => {
     if (!changed) return;
     const account = accounts[0];
@@ -197,7 +200,7 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // Initial load
+  // Initial data
   useEffect(() => {
     if (accounts.length > 0) {
       const oid = accounts[0]?.idTokenClaims?.oid || accounts[0]?.idTokenClaims?.sub;
@@ -213,19 +216,12 @@ function PersonalInfo() {
     );
 
   const logout = () => instance.logoutRedirect();
-
   const nationalityOptions = withCurrentOption(NATIONALITY_OPTIONS, formData.nationality);
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       {/* Header */}
-      <Grid
-        container
-        spacing={2}
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 3 }}
-      >
+      <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
             <img
@@ -257,19 +253,35 @@ function PersonalInfo() {
         Employee ID: {formData.employeeId}
       </Typography>
 
-      {/* Main Form */}
+      {/* Main form */}
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
+        {/* 🪪 Identification Details */}
+        <Paper elevation={1} sx={{ p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            🪪 Identification Details
+          </Typography>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="National ID Number" name="nationalId" value={formData.nationalId} onChange={handleChange} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth type="date" label="National ID Expiration Date" name="nationalIdExpiration" value={formData.nationalIdExpiration || ""} onChange={handleChange} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField select fullWidth label="Nationality" name="nationality" value={formData.nationality || ""} onChange={handleChange}>
+                {nationalityOptions.map((n) => (
+                  <MenuItem key={n} value={n}>
+                    {n}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
+        </Paper>
+
         {/* 🏠 Residential Address */}
-        <Paper
-          elevation={1}
-          sx={{
-            mt: 2,
-            p: 3,
-            backgroundColor: "#f9fafb",
-            borderRadius: 2,
-            border: "1px solid #e0e0e0",
-          }}
-        >
+        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🏠 Residential Address
           </Typography>
@@ -283,9 +295,7 @@ function PersonalInfo() {
                 name="streetAddress"
                 value={formData.streetAddress || ""}
                 onChange={handleChange}
-                SelectProps={{
-                  displayEmpty: true,
-                }}
+                SelectProps={{ displayEmpty: true }}
                 InputProps={{
                   endAdornment: addressLoading ? (
                     <InputAdornment position="end">
@@ -303,55 +313,22 @@ function PersonalInfo() {
             </Grid>
 
             <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                label="Street Number"
-                name="streetNumber"
-                value={formData.streetNumber}
-                onChange={handleChange}
-              />
+              <TextField fullWidth label="Street Number" name="streetNumber" value={formData.streetNumber} onChange={handleChange} />
             </Grid>
-
             <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                label="Apartment"
-                name="apartment"
-                value={formData.apartment}
-                onChange={handleChange}
-              />
+              <TextField fullWidth label="Apartment" name="apartment" value={formData.apartment} onChange={handleChange} />
             </Grid>
           </Grid>
 
           <Grid container spacing={3} mt={1}>
             <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Area"
-                name="area"
-                value={formData.area}
-                onChange={handleChange}
-              />
+              <TextField fullWidth label="Area" name="area" value={formData.area} onChange={handleChange} />
             </Grid>
-
             <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="City"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-              />
+              <TextField fullWidth label="City" name="city" value={formData.city} onChange={handleChange} />
             </Grid>
-
             <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Postal Code"
-                name="postalCode"
-                value={formData.postalCode}
-                onChange={handleChange}
-              />
+              <TextField fullWidth label="Postal Code" name="postalCode" value={formData.postalCode} onChange={handleChange} />
             </Grid>
           </Grid>
         </Paper>
@@ -359,12 +336,7 @@ function PersonalInfo() {
         {/* ✅ Update Button */}
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} textAlign="right">
-            <Button
-              variant="contained"
-              color="success"
-              disabled={!changed || loading}
-              onClick={handleUpdate}
-            >
+            <Button variant="contained" color="success" disabled={!changed || loading} onClick={handleUpdate}>
               {loading ? <CircularProgress size={24} /> : "Update Information"}
             </Button>
           </Grid>
@@ -372,11 +344,7 @@ function PersonalInfo() {
       </Paper>
 
       {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      >
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}>
         <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
           {snackbar.message}
         </Alert>
