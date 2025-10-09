@@ -74,6 +74,7 @@ function PersonalInfo() {
 
   const [loading, setLoading] = useState(false);
   const [changed, setChanged] = useState(false);
+  const [errorFields, setErrorFields] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -196,7 +197,7 @@ function PersonalInfo() {
   const handleUpdate = () => {
     if (!changed) return;
 
-    // ✅ Validate all required fields (except optional ones)
+    // ✅ Required field validation
     const requiredFields = [
       "fullName",
       "employeeId",
@@ -217,9 +218,12 @@ function PersonalInfo() {
       "emergencyContactNumber",
     ];
 
-    const missing = requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "");
+    const missing = requiredFields.filter(
+      (f) => !formData[f] || String(formData[f]).trim() === ""
+    );
 
     if (missing.length > 0) {
+      setErrorFields(missing);
       setSnackbar({
         open: true,
         message: "Please fill in all required fields before updating.",
@@ -227,6 +231,8 @@ function PersonalInfo() {
       });
       return;
     }
+
+    setErrorFields([]);
 
     const account = accounts[0];
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
@@ -256,7 +262,6 @@ function PersonalInfo() {
       )
       .finally(() => setLoading(false));
   };
-
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -311,7 +316,7 @@ function PersonalInfo() {
       </Typography>
 
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
-        {/* 🔒 Identity (readonly) */}
+        {/* Readonly Info */}
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <TextField
@@ -319,7 +324,10 @@ function PersonalInfo() {
               label="Full Name"
               name="fullName"
               value={formData.fullName}
-              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5", userSelect: "none" } }}
+              InputProps={{
+                readOnly: true,
+                style: { backgroundColor: "#f5f5f5" },
+              }}
             />
           </Grid>
           <Grid item xs={12} md={4}>
@@ -328,7 +336,10 @@ function PersonalInfo() {
               label="Employee ID"
               name="employeeId"
               value={formData.employeeId}
-              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5", userSelect: "none" } }}
+              InputProps={{
+                readOnly: true,
+                style: { backgroundColor: "#f5f5f5" },
+              }}
             />
           </Grid>
           <Grid item xs={12} md={4}>
@@ -337,12 +348,15 @@ function PersonalInfo() {
               label="Phone"
               name="phone"
               value={formData.phone}
-              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5", userSelect: "none" } }}
+              InputProps={{
+                readOnly: true,
+                style: { backgroundColor: "#f5f5f5" },
+              }}
             />
           </Grid>
         </Grid>
 
-        {/* ✏️ Editable basics */}
+        {/* Basic Details */}
         <Grid container spacing={3} mt={1}>
           <Grid item xs={12} md={3}>
             <TextField
@@ -351,6 +365,8 @@ function PersonalInfo() {
               name="personalEmail"
               value={formData.personalEmail}
               onChange={handleChange}
+              error={errorFields.includes("personalEmail")}
+              helperText={errorFields.includes("personalEmail") ? "Required" : ""}
             />
           </Grid>
           <Grid item xs={12} md={3}>
@@ -361,6 +377,8 @@ function PersonalInfo() {
               name="maritalStatus"
               value={formData.maritalStatus || ""}
               onChange={handleChange}
+              error={errorFields.includes("maritalStatus")}
+              helperText={errorFields.includes("maritalStatus") ? "Required" : ""}
             >
               <MenuItem value="Married">Married</MenuItem>
               <MenuItem value="Not married">Not married</MenuItem>
@@ -376,6 +394,8 @@ function PersonalInfo() {
               name="educationLevel"
               value={formData.educationLevel || ""}
               onChange={handleChange}
+              error={errorFields.includes("educationLevel")}
+              helperText={errorFields.includes("educationLevel") ? "Required" : ""}
             >
               <MenuItem value="High School">High School</MenuItem>
               <MenuItem value="Diploma">Diploma</MenuItem>
@@ -392,6 +412,8 @@ function PersonalInfo() {
               name="gender"
               value={formData.gender || ""}
               onChange={handleChange}
+              error={errorFields.includes("gender")}
+              helperText={errorFields.includes("gender") ? "Required" : ""}
             >
               <MenuItem value="Male">Male</MenuItem>
               <MenuItem value="Female">Female</MenuItem>
@@ -400,8 +422,8 @@ function PersonalInfo() {
           </Grid>
         </Grid>
 
-        {/* 🪪 Identification Details */}
-        <Paper elevation={1} sx={{ p: 3, mt: 4, backgroundColor: "#f9fafb", borderRadius: 2 }}>
+        {/* 🪪 Identification */}
+        <Paper elevation={1} sx={{ mt: 4, p: 3 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🪪 Identification Details
           </Typography>
@@ -413,6 +435,8 @@ function PersonalInfo() {
                 name="nationalId"
                 value={formData.nationalId}
                 onChange={handleChange}
+                error={errorFields.includes("nationalId")}
+                helperText={errorFields.includes("nationalId") ? "Required" : ""}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -434,6 +458,8 @@ function PersonalInfo() {
                 name="nationality"
                 value={formData.nationality || ""}
                 onChange={handleChange}
+                error={errorFields.includes("nationality")}
+                helperText={errorFields.includes("nationality") ? "Required" : ""}
               >
                 {nationalityOptions.map((n) => (
                   <MenuItem key={n} value={n}>
@@ -446,11 +472,10 @@ function PersonalInfo() {
         </Paper>
 
         {/* 🏠 Residential Address */}
-        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
+        <Paper elevation={1} sx={{ mt: 4, p: 3 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🏠 Residential Address
           </Typography>
-
           <Grid container spacing={3}>
             <Grid item xs={12} md={2.4}>
               <TextField
@@ -459,9 +484,10 @@ function PersonalInfo() {
                 name="postalCode"
                 value={formData.postalCode}
                 onChange={handleChange}
+                error={errorFields.includes("postalCode")}
+                helperText={errorFields.includes("postalCode") ? "Required" : ""}
               />
             </Grid>
-
             <Grid item xs={12} md={2.4}>
               <TextField
                 select
@@ -470,6 +496,7 @@ function PersonalInfo() {
                 name="streetAddress"
                 value={formData.streetAddress || ""}
                 onChange={handleChange}
+                SelectProps={{ displayEmpty: true }}
                 InputProps={{
                   endAdornment: addressLoading ? (
                     <InputAdornment position="end">
@@ -477,6 +504,8 @@ function PersonalInfo() {
                     </InputAdornment>
                   ) : null,
                 }}
+                error={errorFields.includes("streetAddress")}
+                helperText={errorFields.includes("streetAddress") ? "Required" : ""}
               >
                 {streetDropdownOptions.map((s) => (
                   <MenuItem key={s} value={s}>
@@ -485,7 +514,6 @@ function PersonalInfo() {
                 ))}
               </TextField>
             </Grid>
-
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
@@ -493,29 +521,36 @@ function PersonalInfo() {
                 name="streetNumber"
                 value={formData.streetNumber}
                 onChange={handleChange}
+                error={errorFields.includes("streetNumber")}
+                helperText={errorFields.includes("streetNumber") ? "Required" : ""}
               />
             </Grid>
-
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
                 label="Area"
                 name="area"
                 value={formData.area}
-                disabled
+                onChange={handleChange}
+                InputProps={{ readOnly: true }}
+                error={errorFields.includes("area")}
+                helperText={errorFields.includes("area") ? "Required" : ""}
               />
             </Grid>
-
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
                 label="City"
                 name="city"
                 value={formData.city}
-                disabled
+                onChange={handleChange}
+                InputProps={{ readOnly: true }}
+                error={errorFields.includes("city")}
+                helperText={errorFields.includes("city") ? "Required" : ""}
               />
             </Grid>
-
+          </Grid>
+          <Grid container spacing={3} mt={1}>
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
@@ -523,32 +558,47 @@ function PersonalInfo() {
                 name="apartment"
                 value={formData.apartment}
                 onChange={handleChange}
+                error={errorFields.includes("apartment")}
+                helperText={errorFields.includes("apartment") ? "Required" : ""}
               />
             </Grid>
           </Grid>
         </Paper>
 
         {/* ☎️ Emergency Contact */}
+        <Paper elevation={1} sx={{ mt: 4, p: 3 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            ☎️ Emergency Contact
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Contact Name"
+                name="emergencyContactName"
+                value={formData.emergencyContactName}
+                onChange={handleChange}
+                error={errorFields.includes("emergencyContactName")}
+                helperText={errorFields.includes("emergencyContactName") ? "Required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Contact Number"
+                name="emergencyContactNumber"
+                value={formData.emergencyContactNumber}
+                onChange={handleChange}
+                error={errorFields.includes("emergencyContactNumber")}
+                helperText={errorFields.includes("emergencyContactNumber") ? "Required" : ""}
+              />
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* ✅ Update Button */}
         <Grid container spacing={3} mt={3} alignItems="center">
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Emergency Contact Name"
-              name="emergencyContactName"
-              value={formData.emergencyContactName}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Emergency Contact Number"
-              name="emergencyContactNumber"
-              value={formData.emergencyContactNumber}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={6} textAlign="right">
+          <Grid item xs={12} textAlign="right">
             <Button
               variant="contained"
               color="success"
@@ -561,6 +611,7 @@ function PersonalInfo() {
         </Grid>
       </Paper>
 
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
