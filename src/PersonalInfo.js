@@ -82,7 +82,8 @@ function PersonalInfo() {
   });
 
   const [addressLoading, setAddressLoading] = useState(false);
-  const [streetOptions, setStreetOptions] = useState(["Omonoias", "Archangelou", "Other"]);
+  const [streetOptions, setStreetOptions] = useState([]);
+  const [addressMap, setAddressMap] = useState([]);
 
   const urlUserInfo =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
@@ -140,8 +141,13 @@ function PersonalInfo() {
         body: JSON.stringify({ postalCode }),
       });
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) setStreetOptions(data);
-      else setStreetOptions(["No addresses found"]);
+
+      if (data.addresses && Array.isArray(data.addresses)) {
+        setAddressMap(data.addresses);
+        setStreetOptions(data.addresses.map((a) => a.Street));
+      } else {
+        setStreetOptions(["No addresses found"]);
+      }
     } catch (err) {
       console.error("Address lookup error:", err);
       setStreetOptions(["Error retrieving addresses"]);
@@ -165,7 +171,16 @@ function PersonalInfo() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updated = { ...formData, [name]: value };
+    let updated = { ...formData, [name]: value };
+
+    // Auto-fill City and Area when selecting street
+    if (name === "streetAddress") {
+      const selected = addressMap.find((a) => a.Street === value);
+      if (selected) {
+        updated = { ...updated, area: selected.Area, city: selected.City };
+      }
+    }
+
     setFormData(updated);
     setChanged(hasChanges(updated, originalData.current));
   };
@@ -255,9 +270,9 @@ function PersonalInfo() {
         Employee ID: {formData.employeeId}
       </Typography>
 
-      {/* Main Form */}
+      {/* Form */}
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
-        {/* Readonly Core Info */}
+        {/* Readonly fields */}
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <TextField fullWidth label="Full Name" name="fullName" value={formData.fullName} InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }} />
@@ -270,7 +285,7 @@ function PersonalInfo() {
           </Grid>
         </Grid>
 
-        {/* Editable Info */}
+        {/* Editable section */}
         <Grid container spacing={3} mt={1}>
           <Grid item xs={12} md={4}>
             <TextField fullWidth label="Personal Email" name="personalEmail" value={formData.personalEmail} onChange={handleChange} />
@@ -310,7 +325,6 @@ function PersonalInfo() {
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🪪 Identification Details
           </Typography>
-
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
               <TextField fullWidth label="National ID Number" name="nationalId" value={formData.nationalId} onChange={handleChange} />
@@ -343,7 +357,6 @@ function PersonalInfo() {
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🏠 Residential Address
           </Typography>
-
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <TextField
