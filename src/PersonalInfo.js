@@ -28,7 +28,7 @@ const companyLogos = {
   "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
 };
 
-// 🔽 Nationality Options
+// 🔽 Nationality options (trimmed EU + nearby for brevity; extend as needed)
 const NATIONALITY_OPTIONS = [
   "Cyprus", "Åland Islands", "Albania", "Andorra", "Armenia", "Austria", "Azerbaijan",
   "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia", "Czech Republic",
@@ -37,7 +37,7 @@ const NATIONALITY_OPTIONS = [
   "Italy", "Jersey", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Malta",
   "Moldova", "Monaco", "Montenegro", "Netherlands", "North Macedonia", "Norway", "Poland",
   "Portugal", "Romania", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain",
-  "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom", "Vatican City"
+  "Sweden", "Switzerland", "Turkey", "Ukraine", "United Kingdom", "Vatican City",
 ];
 
 const withCurrentOption = (options, current) => {
@@ -81,6 +81,7 @@ function PersonalInfo() {
     severity: "success",
   });
 
+  // Address fetch + mapping
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
@@ -91,7 +92,7 @@ function PersonalInfo() {
   const urlAddressLookup =
     "https://prod-24.westeurope.logic.azure.com:443/workflows/f0e93ec5ec1343a6bd52326577282aca/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=0c8NQEn0LBb8i5jEBUgpns8y8hSFZqOsG19f_Ktwzkw";
 
-  // ✅ Fetch user info
+  // ✅ Fetch user info (prefill)
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(urlUserInfo, {
@@ -101,6 +102,17 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
+        // Emergency contact fallback logic: if only number is returned under "Name"
+        let ecName = data["Emergency Contact Name"] ?? "";
+        let ecNumber = data["Emergency Contact Number"] ?? "";
+
+        const ecNameStr = String(ecName ?? "");
+        if (!ecNumber && /^\d{5,}$/.test(ecNameStr)) {
+          // looks like a phone number accidentally placed in Name
+          ecNumber = ecNameStr;
+          ecName = "";
+        }
+
         const normalized = {
           fullName: data.FullName || "",
           employeeId: data.EmployeeId?.toString() || "",
@@ -119,9 +131,10 @@ function PersonalInfo() {
           apartment: data["Apartment "] || "",
           area: data.Area || "",
           city: data.City || "",
-          emergencyContactName: data["Emergency Contact Name"] || "",
-          emergencyContactNumber: data["Emergency Contact Number"]?.toString() || "",
+          emergencyContactName: String(ecName || ""),
+          emergencyContactNumber: String(ecNumber || ""),
         };
+
         setUserData({ companyName: normalized.companyName });
         setFormData(normalized);
         originalData.current = normalized;
@@ -131,7 +144,7 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // ✅ Fetch addresses by postal code
+  // ✅ Fetch addresses by postal code (when length is 4)
   const fetchAddressesByPostalCode = async (postalCode) => {
     if (postalCode.length < 4) return;
     setAddressLoading(true);
@@ -147,10 +160,12 @@ function PersonalInfo() {
         setAddressMap(data.addresses);
         setStreetOptions(data.addresses.map((a) => a.Street));
       } else {
+        setAddressMap([]);
         setStreetOptions(["No addresses found"]);
       }
     } catch (err) {
       console.error("Address lookup error:", err);
+      setAddressMap([]);
       setStreetOptions(["Error retrieving addresses"]);
     } finally {
       setAddressLoading(false);
@@ -163,6 +178,7 @@ function PersonalInfo() {
     }
   }, [formData.postalCode]);
 
+  // change detection
   const hasChanges = (current, original) =>
     Object.keys(current).some(
       (key) => key !== "companyName" && (original?.[key] ?? "") !== (current?.[key] ?? "")
@@ -172,6 +188,7 @@ function PersonalInfo() {
     const { name, value } = e.target;
     let updated = { ...formData, [name]: value };
 
+    // When street changes, auto-fill area/city from the selected address
     if (name === "streetAddress") {
       const selected = addressMap.find((a) => a.Street === value);
       if (selected) {
@@ -183,10 +200,12 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
+  // ✅ Update info (only if changed)
   const handleUpdate = () => {
     if (!changed) return;
     const account = accounts[0];
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+
     setLoading(true);
     fetch(urlUserInfo, {
       method: "POST",
@@ -213,6 +232,7 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
+  // initial load
   useEffect(() => {
     if (accounts.length > 0) {
       const oid = accounts[0]?.idTokenClaims?.oid || accounts[0]?.idTokenClaims?.sub;
@@ -228,6 +248,8 @@ function PersonalInfo() {
     );
 
   const logout = () => instance.logoutRedirect();
+
+  // options incl. current
   const nationalityOptions = withCurrentOption(NATIONALITY_OPTIONS, formData.nationality);
   const streetDropdownOptions = withCurrentOption(streetOptions, formData.streetAddress);
 
@@ -266,12 +288,101 @@ function PersonalInfo() {
       </Typography>
 
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
+        {/* 🔒 Identity (readonly) */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Full Name"
+              name="fullName"
+              value={formData.fullName}
+              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5", userSelect: "none" } }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Employee ID"
+              name="employeeId"
+              value={formData.employeeId}
+              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5", userSelect: "none" } }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Phone"
+              name="phone"
+              value={formData.phone}
+              InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5", userSelect: "none" } }}
+            />
+          </Grid>
+        </Grid>
+
+        {/* ✏️ Editable basics */}
+        <Grid container spacing={3} mt={1}>
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="Personal Email"
+              name="personalEmail"
+              value={formData.personalEmail}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <TextField
+              select
+              fullWidth
+              label="Marital Status"
+              name="maritalStatus"
+              value={formData.maritalStatus || ""}
+              onChange={handleChange}
+            >
+              <MenuItem value="Married">Married</MenuItem>
+              <MenuItem value="Not married">Not married</MenuItem>
+              <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
+              <MenuItem value="Divorced">Divorced</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <TextField
+              select
+              fullWidth
+              label="Education Level"
+              name="educationLevel"
+              value={formData.educationLevel || ""}
+              onChange={handleChange}
+            >
+              <MenuItem value="High School">High School</MenuItem>
+              <MenuItem value="Diploma">Diploma</MenuItem>
+              <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
+              <MenuItem value="Masters Degree">Masters Degree</MenuItem>
+              <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <TextField
+              select
+              fullWidth
+              label="Gender"
+              name="gender"
+              value={formData.gender || ""}
+              onChange={handleChange}
+            >
+              <MenuItem value="Male">Male</MenuItem>
+              <MenuItem value="Female">Female</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
+
         {/* 🪪 Identification Details */}
         <Paper
           elevation={1}
           sx={{
             p: 3,
-            mb: 4,
+            mt: 4,
             backgroundColor: "#f9fafb",
             borderRadius: 2,
             border: "1px solid #e0e0e0",
@@ -311,7 +422,7 @@ function PersonalInfo() {
                 value={formData.nationality || ""}
                 onChange={handleChange}
               >
-                {nationalityOptions.map((n) => (
+                {withCurrentOption(NATIONALITY_OPTIONS, formData.nationality).map((n) => (
                   <MenuItem key={n} value={n}>
                     {n}
                   </MenuItem>
@@ -322,14 +433,24 @@ function PersonalInfo() {
         </Paper>
 
         {/* 🏠 Residential Address */}
-        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}>
+        <Paper
+          elevation={1}
+          sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2, border: "1px solid #e0e0e0" }}
+        >
           <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
             🏠 Residential Address
           </Typography>
 
+          {/* Row 1: 5 fields on desktop */}
           <Grid container spacing={3}>
             <Grid item xs={12} md={2.4}>
-              <TextField fullWidth label="Postal Code" name="postalCode" value={formData.postalCode} onChange={handleChange} />
+              <TextField
+                fullWidth
+                label="Postal Code"
+                name="postalCode"
+                value={formData.postalCode}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12} md={2.4}>
@@ -348,7 +469,7 @@ function PersonalInfo() {
                   ) : null,
                 }}
               >
-                {streetDropdownOptions.map((s) => (
+                {withCurrentOption(streetOptions, formData.streetAddress).map((s) => (
                   <MenuItem key={s} value={s}>
                     {s}
                   </MenuItem>
@@ -357,40 +478,88 @@ function PersonalInfo() {
             </Grid>
 
             <Grid item xs={12} md={2.4}>
-              <TextField fullWidth label="Street Number" name="streetNumber" value={formData.streetNumber} onChange={handleChange} />
+              <TextField
+                fullWidth
+                label="Street Number"
+                name="streetNumber"
+                value={formData.streetNumber}
+                onChange={handleChange}
+              />
             </Grid>
 
             <Grid item xs={12} md={2.4}>
-              <TextField fullWidth label="Area" name="area" value={formData.area} onChange={handleChange} disabled />
+              <TextField
+                fullWidth
+                label="Area"
+                name="area"
+                value={formData.area}
+                onChange={handleChange}
+                disabled
+              />
             </Grid>
 
             <Grid item xs={12} md={2.4}>
-              <TextField fullWidth label="City" name="city" value={formData.city} onChange={handleChange} disabled />
+              <TextField
+                fullWidth
+                label="City"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                disabled
+              />
             </Grid>
 
+            {/* Row 2: Apartment alone in first slot to keep 5-per-row rhythm, remaining empty slots are fine */}
             <Grid item xs={12} md={2.4}>
-              <TextField fullWidth label="Apartment" name="apartment" value={formData.apartment} onChange={handleChange} />
+              <TextField
+                fullWidth
+                label="Apartment"
+                name="apartment"
+                value={formData.apartment}
+                onChange={handleChange}
+              />
             </Grid>
           </Grid>
         </Paper>
 
         {/* ☎️ Emergency Contact */}
-        <Grid container spacing={3} mt={3}>
-          <Grid item xs={12} md={2.4}>
-            <TextField fullWidth label="Emergency Contact Name" name="emergencyContactName" value={formData.emergencyContactName} onChange={handleChange} />
+        <Grid container spacing={3} mt={3} alignItems="center">
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="Emergency Contact Name"
+              name="emergencyContactName"
+              value={formData.emergencyContactName}
+              onChange={handleChange}
+            />
           </Grid>
-          <Grid item xs={12} md={2.4}>
-            <TextField fullWidth label="Emergency Contact Number" name="emergencyContactNumber" value={formData.emergencyContactNumber} onChange={handleChange} />
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="Emergency Contact Number"
+              name="emergencyContactNumber"
+              value={formData.emergencyContactNumber}
+              onChange={handleChange}
+            />
           </Grid>
-          <Grid item xs={12} md={7.2} textAlign="right">
-            <Button variant="contained" color="success" disabled={!changed || loading} onClick={handleUpdate}>
+          <Grid item xs={12} md={6} textAlign="right">
+            <Button
+              variant="contained"
+              color="success"
+              disabled={!changed || loading}
+              onClick={handleUpdate}
+            >
               {loading ? <CircularProgress size={24} /> : "Update Information"}
             </Button>
           </Grid>
         </Grid>
       </Paper>
 
-      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      >
         <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
           {snackbar.message}
         </Alert>
