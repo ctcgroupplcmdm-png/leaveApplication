@@ -11,7 +11,6 @@ import {
   Snackbar,
   Alert,
   Paper,
-  Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -189,7 +188,7 @@ function PersonalInfo() {
 
       {/* Form */}
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
-        {/* Row 1 */}
+        {/* Basic Info */}
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <TextField
@@ -220,7 +219,7 @@ function PersonalInfo() {
           </Grid>
         </Grid>
 
-        {/* Row 2 */}
+        {/* Editable Info */}
         <Grid container spacing={3} mt={1}>
           <Grid item xs={12} md={4}>
             <TextField
@@ -264,45 +263,60 @@ function PersonalInfo() {
           </Grid>
         </Grid>
 
-        {/* Row 3 */}
-        <Grid container spacing={3} mt={1}>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="National ID Number"
-              name="nationalId"
-              value={formData.nationalId}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              type="date"
-              label="National ID Expiration Date"
-              name="nationalIdExpiration"
-              value={formData.nationalIdExpiration || ""}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Nationality"
-              name="nationality"
-              value={formData.nationality}
-              onChange={handleChange}
-            >
-              <MenuItem value="Cyprus">Cyprus</MenuItem>
-              <MenuItem value="Greece">Greece</MenuItem>
-              <MenuItem value="Other">Other</MenuItem>
-            </TextField>
-          </Grid>
-        </Grid>
+        {/* 🪪 Identification Details */}
+        <Paper
+          elevation={1}
+          sx={{
+            mt: 4,
+            p: 3,
+            backgroundColor: "#f9fafb",
+            borderRadius: 2,
+            border: "1px solid #e0e0e0",
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            🪪 Identification Details
+          </Typography>
 
-        {/* Residential Address Section */}
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="National ID Number"
+                name="nationalId"
+                value={formData.nationalId}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="date"
+                label="National ID Expiration Date"
+                name="nationalIdExpiration"
+                value={formData.nationalIdExpiration || ""}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Nationality"
+                name="nationality"
+                value={formData.nationality}
+                onChange={handleChange}
+              >
+                <MenuItem value="Cyprus">Cyprus</MenuItem>
+                <MenuItem value="Greece">Greece</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* 🏠 Residential Address */}
         <Paper
           elevation={1}
           sx={{
@@ -383,7 +397,7 @@ function PersonalInfo() {
           </Grid>
         </Paper>
 
-        {/* Final Row */}
+        {/* ✅ Final Row */}
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} md={6}>
             <TextField
