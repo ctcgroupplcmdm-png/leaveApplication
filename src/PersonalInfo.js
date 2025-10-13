@@ -287,105 +287,118 @@ function PersonalInfo() {
 
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
         {/* 📋 Personal Information */}
-        <Paper elevation={1} sx={{ p: 3, mb: 4, backgroundColor: "#f9fafb", borderRadius: 2 }}>
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-            📋 Personal Information
-          </Typography>
+        <Paper
+  elevation={1}
+  sx={{
+    p: 3,
+    mb: 4,
+    backgroundColor: "#f9fafb",
+    borderRadius: 2,
+  }}
+>
+  <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+    📋 Personal Information
+  </Typography>
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Full Name"
-                name="fullName"
-                value={formData.fullName}
-                InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Employee ID"
-                name="employeeId"
-                value={formData.employeeId}
-                InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Phone"
-                name="phone"
-                value={formData.phone}
-                InputProps={{ readOnly: true, style: { backgroundColor: "#f5f5f5" } }}
-              />
-            </Grid>
+  <Grid container spacing={3}>
+    {/* Read-only fields */}
+    <Grid item xs={12} md={4}>
+      <TextField
+        fullWidth
+        label="Full Name"
+        name="fullName"
+        value={formData.fullName}
+        disabled
+      />
+    </Grid>
+    <Grid item xs={12} md={4}>
+      <TextField
+        fullWidth
+        label="Employee ID"
+        name="employeeId"
+        value={formData.employeeId}
+        disabled
+      />
+    </Grid>
+    <Grid item xs={12} md={4}>
+      <TextField
+        fullWidth
+        label="Phone"
+        name="phone"
+        value={formData.phone}
+        disabled
+      />
+    </Grid>
 
-            {/* Editable Personal Info */}
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                label="Personal Email"
-                name="personalEmail"
-                value={formData.personalEmail}
-                onChange={handleChange}
-                error={errorFields.includes("personalEmail")}
-                helperText={errorFields.includes("personalEmail") ? "Required" : ""}
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                select
-                fullWidth
-                label="Marital Status"
-                name="maritalStatus"
-                value={formData.maritalStatus || ""}
-                onChange={handleChange}
-                error={errorFields.includes("maritalStatus")}
-                helperText={errorFields.includes("maritalStatus") ? "Required" : ""}
-              >
-                <MenuItem value="Married">Married</MenuItem>
-                <MenuItem value="Not married">Not married</MenuItem>
-                <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
-                <MenuItem value="Divorced">Divorced</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                select
-                fullWidth
-                label="Education Level"
-                name="educationLevel"
-                value={formData.educationLevel || ""}
-                onChange={handleChange}
-                error={errorFields.includes("educationLevel")}
-                helperText={errorFields.includes("educationLevel") ? "Required" : ""}
-              >
-                <MenuItem value="High School">High School</MenuItem>
-                <MenuItem value="Diploma">Diploma</MenuItem>
-                <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
-                <MenuItem value="Masters Degree">Masters Degree</MenuItem>
-                <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                select
-                fullWidth
-                label="Gender"
-                name="gender"
-                value={formData.gender || ""}
-                onChange={handleChange}
-                error={errorFields.includes("gender")}
-                helperText={errorFields.includes("gender") ? "Required" : ""}
-              >
-                <MenuItem value="Male">Male</MenuItem>
-                <MenuItem value="Female">Female</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
-              </TextField>
-            </Grid>
-          </Grid>
-        </Paper>
+    {/* Editable fields (still inside the same card) */}
+    <Grid item xs={12} md={3}>
+      <TextField
+        fullWidth
+        label="Personal Email"
+        name="personalEmail"
+        value={formData.personalEmail}
+        onChange={handleChange}
+        error={errorFields.includes("personalEmail")}
+        helperText={errorFields.includes("personalEmail") ? "Required" : ""}
+      />
+    </Grid>
+
+    <Grid item xs={12} md={3}>
+      <TextField
+        select
+        fullWidth
+        label="Marital Status"
+        name="maritalStatus"
+        value={formData.maritalStatus || ""}
+        onChange={handleChange}
+        error={errorFields.includes("maritalStatus")}
+        helperText={errorFields.includes("maritalStatus") ? "Required" : ""}
+      >
+        <MenuItem value="Married">Married</MenuItem>
+        <MenuItem value="Not married">Not married</MenuItem>
+        <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
+        <MenuItem value="Divorced">Divorced</MenuItem>
+      </TextField>
+    </Grid>
+
+    <Grid item xs={12} md={3}>
+      <TextField
+        select
+        fullWidth
+        label="Education Level"
+        name="educationLevel"
+        value={formData.educationLevel || ""}
+        onChange={handleChange}
+        error={errorFields.includes("educationLevel")}
+        helperText={errorFields.includes("educationLevel") ? "Required" : ""}
+      >
+        <MenuItem value="High School">High School</MenuItem>
+        <MenuItem value="Diploma">Diploma</MenuItem>
+        <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
+        <MenuItem value="Masters Degree">Masters Degree</MenuItem>
+        <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
+      </TextField>
+    </Grid>
+
+    <Grid item xs={12} md={3}>
+      <TextField
+        select
+        fullWidth
+        label="Gender"
+        name="gender"
+        value={formData.gender || ""}
+        onChange={handleChange}
+        error={errorFields.includes("gender")}
+        helperText={errorFields.includes("gender") ? "Required" : ""}
+      >
+        <MenuItem value="Male">Male</MenuItem>
+        <MenuItem value="Female">Female</MenuItem>
+        <MenuItem value="Other">Other</MenuItem>
+      </TextField>
+    </Grid>
+  </Grid>
+</Paper>
+
 
         {/* 🪪 Identification */}
         <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
