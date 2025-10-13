@@ -406,10 +406,11 @@ function PersonalInfo() {
         <Grid container mt={4}>
           <Grid item xs={12} textAlign="right">
             <Button
-              variant={userNeedsUpdate ? "outlined" : "contained"}
-              color={userNeedsUpdate ? "warning" : "success"}
-              disabled={(!changed && !userNeedsUpdate) || loading}
-              onClick={handleUpdate}
+  variant={userNeedsUpdate ? "outlined" : "contained"}
+  color={userNeedsUpdate ? "warning" : "success"}
+  disabled={loading} // ✅ allow update if outdated, regardless of changes
+  onClick={handleUpdate}
+
               sx={{
                 fontWeight: "bold",
                 px: 4,
