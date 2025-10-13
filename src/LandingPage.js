@@ -70,7 +70,7 @@ function LandingPage() {
         });
         const statusData = await statusRes.json();
 
-        // 🟢 Interpret status = true → needs update
+        // 🟢 Interpret status = true → Needs update
         setUserStatus(
           statusData.status === true
             ? "NeedsUpdate"
@@ -204,7 +204,7 @@ function LandingPage() {
           </Button>
         </Box>
 
-        {/* ⚠️ Show warning if user needs update */}
+        {/* ⚠️ Warning if user needs update */}
         {userStatus === "NeedsUpdate" && (
           <Alert
             severity="warning"
@@ -214,10 +214,27 @@ function LandingPage() {
               textAlign: "center",
               borderRadius: "12px",
               fontSize: "1rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            ⚠️ Our records show you haven’t updated your personal information
-            in over 2 years. Please review and update your details.
+             Our records show you haven’t updated your personal information in
+            over 2 years.
+            <Button
+              variant="contained"
+              color="warning"
+              size="small"
+              sx={{
+                mt: 2,
+                textTransform: "none",
+                borderRadius: "8px",
+                fontWeight: "bold",
+              }}
+              onClick={() => navigate("/personal-info")}
+            >
+              Update Now
+            </Button>
           </Alert>
         )}
       </Box>
