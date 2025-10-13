@@ -331,7 +331,7 @@ function PersonalInfo() {
     </Grid>
 
     {/* Editable fields (still inside the same card) */}
-    <Grid item xs={12} md={3}>
+    <Grid item xs={12} md={4}>
       <TextField
         fullWidth
         label="Personal Email"
@@ -343,7 +343,7 @@ function PersonalInfo() {
       />
     </Grid>
 
-    <Grid item xs={12} md={3}>
+    <Grid item xs={12} md={4}>
       <TextField
         select
         fullWidth
@@ -361,7 +361,7 @@ function PersonalInfo() {
       </TextField>
     </Grid>
 
-    <Grid item xs={12} md={3}>
+    <Grid item xs={12} md={4}>
       <TextField
         select
         fullWidth
@@ -380,7 +380,7 @@ function PersonalInfo() {
       </TextField>
     </Grid>
 
-    <Grid item xs={12} md={3}>
+    <Grid item xs={12} md={4}>
       <TextField
         select
         fullWidth
