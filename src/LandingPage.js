@@ -26,35 +26,56 @@ const companyLogos = {
 function LandingPage() {
   const { instance, accounts } = useMsal();
   const [userData, setUserData] = useState(null);
+  const [userStatus, setUserStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Logic App URLs
+  const urlUserInfo =
+    "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg";
+  const urlUserStatus =
+    "https://prod-165.westeurope.logic.azure.com:443/workflows/c484da6f94ad4cd5aea8a92377375728/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=Bt8eh3QsyGHRYRmzqf2S0ujsaGxgxyVqUyCpYQmiIMY";
+
   useEffect(() => {
-    if (accounts.length > 0) {
+    const fetchData = async () => {
+      if (accounts.length === 0) return;
+
       const account = accounts[0];
       const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
-      // Fetch basic info from Logic App (or Graph API)
-      fetch(
-        "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
-        {
+      try {
+        // Fetch user info
+        const infoRes = await fetch(urlUserInfo, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ oid }),
-        }
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          setUserData({
-            name: data.displayName,
-            employeeId: data.employeeId,
-            phone: data.mobilePhone,
-            companyName: data.companyName || "Company",
-          });
-        })
-        .catch((err) => console.error("Error fetching user data:", err))
-        .finally(() => setLoading(false));
-    }
+        });
+        const infoData = await infoRes.json();
+
+        // Fetch user status
+        const statusRes = await fetch(urlUserStatus, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oid }),
+        });
+        const statusData = await statusRes.json();
+
+        setUserData({
+          name: infoData.displayName,
+          employeeId: infoData.employeeId,
+          phone: infoData.mobilePhone,
+          companyName: infoData.companyName || "Company",
+        });
+
+        setUserStatus(statusData.status || statusData.Status || "Unknown");
+      } catch (err) {
+        console.error("Error fetching user data or status:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [accounts]);
 
   const logout = () => instance.logoutRedirect();
@@ -83,7 +104,6 @@ function LandingPage() {
         justifyContent="space-between"
         sx={{ mb: 3 }}
       >
-        {/* Logo + Company Name */}
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
             <img
@@ -97,7 +117,6 @@ function LandingPage() {
           </Typography>
         </Grid>
 
-        {/* Logout Button */}
         <Grid item>
           <Button variant="outlined" color="error" onClick={logout}>
             Logout
@@ -113,10 +132,24 @@ function LandingPage() {
         <Typography variant="h6" color="text.secondary" gutterBottom>
           Employee ID: {userData.employeeId}
         </Typography>
+
+        {/* 🟢 Status Chip */}
+        <Chip
+          label={`Status: ${userStatus}`}
+          color={
+            userStatus?.toLowerCase() === "active"
+              ? "success"
+              : userStatus?.toLowerCase() === "inactive"
+              ? "error"
+              : "default"
+          }
+          sx={{ fontSize: "1rem", mt: 1 }}
+        />
+
         <Chip
           label={userData.companyName}
           color="primary"
-          sx={{ fontSize: "1rem", mt: 1 }}
+          sx={{ fontSize: "1rem", mt: 1, ml: 1 }}
         />
       </Box>
 
