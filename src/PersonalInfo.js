@@ -38,45 +38,31 @@ const companyLogos = {
 };
 
 const NATIONALITY_OPTIONS = [
-  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
-  "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain",
-  "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
-  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso",
-  "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic",
-  "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)",
-  "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti",
-  "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea",
-  "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon",
-  "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea",
-  "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India",
-  "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan",
-  "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon",
-  "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
-  "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania",
-  "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro",
-  "Morocco", "Mozambique", "Myanmar (Burma)", "Namibia", "Nauru", "Nepal", "Netherlands",
-  "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia",
-  "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea",
-  "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia",
-  "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines",
-  "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia",
-  "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands",
-  "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan",
-  "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania",
-  "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey",
-  "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
-  "United States of America", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
-  "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe",
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria",
+  "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
+  "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+  "Cambodia", "Cameroon", "Canada", "Chile", "China", "Colombia", "Costa Rica", "Croatia", "Cuba", "Cyprus",
+  "Czech Republic", "Denmark", "Dominican Republic", "Ecuador", "Egypt", "Estonia", "Finland", "France", "Georgia",
+  "Germany", "Greece", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kuwait", "Latvia", "Lebanon", "Lithuania", "Luxembourg",
+  "Malaysia", "Malta", "Mexico", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Nepal", "Netherlands",
+  "New Zealand", "Nigeria", "North Macedonia", "Norway", "Pakistan", "Panama", "Paraguay", "Peru", "Philippines",
+  "Poland", "Portugal", "Qatar", "Romania", "Russia", "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa",
+  "South Korea", "Spain", "Sri Lanka", "Sweden", "Switzerland", "Thailand", "Turkey", "Ukraine", "United Kingdom",
+  "United States of America", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Zambia", "Zimbabwe",
 ];
 
-const withCurrentOption = (options, current) =>
-  current && !options.includes(current) ? [current, ...options] : options;
+const withCurrentOption = (options, current) => {
+  if (!current) return options;
+  return options.includes(current) ? options : [current, ...options];
+};
 
 function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
   const originalData = useRef(null);
   const [userData, setUserData] = useState(null);
+  const [userNeedsUpdate, setUserNeedsUpdate] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     employeeId: "",
@@ -106,7 +92,6 @@ function PersonalInfo() {
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
-  const [userNeedsUpdate, setUserNeedsUpdate] = useState(false);
 
   const urlUserInfo =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
@@ -115,7 +100,6 @@ function PersonalInfo() {
   const urlUserStatus =
     "https://prod-165.westeurope.logic.azure.com:443/workflows/c484da6f94ad4cd5aea8a92377375728/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=Bt8eh3QsyGHRYRmzqf2S0ujsaGxgxyVqUyCpYQmiIMY";
 
-  // Fetch user info
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(urlUserInfo, {
@@ -125,19 +109,11 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
-        let ecName = data["Emergency Contact Name"] ?? "";
-        let ecNumber = data["Emergency Contact Number"] ?? "";
-        const ecNameStr = String(ecName ?? "");
-        if (!ecNumber && /^\d{5,}$/.test(ecNameStr)) {
-          ecNumber = ecNameStr;
-          ecName = "";
-        }
-
         const normalized = {
           fullName: data.FullName || "",
           employeeId: data.EmployeeId?.toString() || "",
           phone: data.Phone?.toString() || "",
-          personalEmail: data.PersonalEmail || data["Personal Email"] || "",
+          personalEmail: data.PersonalEmail || "",
           maritalStatus: data["Marital Status"] || "",
           educationalLevel: data.EducationalLevel || "",
           gender: data.Gender || "",
@@ -151,10 +127,9 @@ function PersonalInfo() {
           apartment: data["Apartment "] || "",
           area: data.Area || "",
           city: data.City || "",
-          emergencyContactName: String(ecName || ""),
-          emergencyContactNumber: String(ecNumber || ""),
+          emergencyContactName: data["Emergency Contact Name"] || "",
+          emergencyContactNumber: data["Emergency Contact Number"] || "",
         };
-
         setUserData({ companyName: normalized.companyName });
         setFormData(normalized);
         originalData.current = normalized;
@@ -164,7 +139,17 @@ function PersonalInfo() {
       .finally(() => setLoading(false));
   };
 
-  // Address lookup
+  const fetchUserStatus = (oid, employeeId) => {
+    fetch(urlUserStatus, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ oid, employeeId }),
+    })
+      .then((res) => res.json())
+      .then((data) => setUserNeedsUpdate(data.status === true))
+      .catch((err) => console.error("Error fetching status:", err));
+  };
+
   const fetchAddressesByPostalCode = async (postalCode) => {
     if (postalCode.length < 4) return;
     setAddressLoading(true);
@@ -180,26 +165,22 @@ function PersonalInfo() {
         setStreetOptions(data.addresses.map((a) => a.Street));
       } else {
         setAddressMap([]);
-        setStreetOptions(["No addresses found"]);
+        setStreetOptions([]);
       }
     } catch {
       setAddressMap([]);
-      setStreetOptions(["Error retrieving addresses"]);
+      setStreetOptions([]);
     } finally {
       setAddressLoading(false);
     }
   };
 
   useEffect(() => {
-    if (formData.postalCode && formData.postalCode.length === 4) {
-      fetchAddressesByPostalCode(formData.postalCode);
-    }
+    if (formData.postalCode?.length === 4) fetchAddressesByPostalCode(formData.postalCode);
   }, [formData.postalCode]);
 
   const hasChanges = (current, original) =>
-    Object.keys(current).some(
-      (key) => key !== "companyName" && (original?.[key] ?? "") !== (current?.[key] ?? "")
-    );
+    Object.keys(current).some((k) => k !== "companyName" && (original?.[k] ?? "") !== (current?.[k] ?? ""));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -212,7 +193,6 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // Update
   const handleUpdate = () => {
     if (!changed && !userNeedsUpdate) return;
     const requiredFields = [
@@ -221,20 +201,13 @@ function PersonalInfo() {
       "streetAddress", "streetNumber", "area", "city", "apartment",
       "emergencyContactName", "emergencyContactNumber",
     ];
-    const missing = requiredFields.filter(
-      (f) => !formData[f] || String(formData[f]).trim() === ""
-    );
-    if (missing.length > 0) {
+    const missing = requiredFields.filter((f) => !formData[f]?.trim());
+    if (missing.length) {
       setErrorFields(missing);
-      setSnackbar({
-        open: true,
-        message: "Please fill in all required fields before updating.",
-        severity: "error",
-      });
+      setSnackbar({ open: true, message: "Please fill in all required fields before updating.", severity: "error" });
       return;
     }
 
-    setErrorFields([]);
     const account = accounts[0];
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
     setLoading(true);
@@ -245,39 +218,21 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then(() => {
-        setSnackbar({
-          open: true,
-          message: "Information updated successfully.",
-          severity: "success",
-        });
+        setSnackbar({ open: true, message: "Information updated successfully.", severity: "success" });
         originalData.current = formData;
         setChanged(false);
         setUserNeedsUpdate(false);
       })
-      .catch(() =>
-        setSnackbar({
-          open: true,
-          message: "Failed to update information.",
-          severity: "error",
-        })
-      )
+      .catch(() => setSnackbar({ open: true, message: "Failed to update information.", severity: "error" }))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
     if (accounts.length > 0) {
-      const oid = accounts[0]?.idTokenClaims?.oid || accounts[0]?.idTokenClaims?.sub;
+      const account = accounts[0];
+      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
       fetchUserInfo(oid);
-
-      // 🟩 Fetch user status
-      fetch(urlUserStatus, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oid }),
-      })
-        .then((res) => res.json())
-        .then((data) => setUserNeedsUpdate(data.status === true))
-        .catch((err) => console.error("Error fetching status:", err));
+      setTimeout(() => fetchUserStatus(oid, formData.employeeId), 1500);
     }
   }, [accounts]);
 
@@ -295,7 +250,7 @@ function PersonalInfo() {
       {/* Header */}
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {userData?.companyName && companyLogos[userData.companyName] && (
+          {companyLogos[userData.companyName] && (
             <img
               src={companyLogos[userData.companyName]}
               alt={userData.companyName}
@@ -322,9 +277,8 @@ function PersonalInfo() {
 
       {/* Main Form Card */}
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
-        {/* ... All your form content unchanged ... */}
+        {/* your full form content (personal info, address, emergency contact) stays unchanged */}
 
-        {/* ✅ Update Button */}
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} textAlign="right">
             <Button
