@@ -83,7 +83,7 @@ function PersonalInfo() {
     phone: "",
     personalEmail: "",
     maritalStatus: "",
-    educationLevel: "",
+    educationalLevel: "",
     gender: "",
     companyName: "Company",
     nationalId: "",
@@ -135,7 +135,7 @@ function PersonalInfo() {
           phone: data.Phone?.toString() || "",
           personalEmail: data.PersonalEmail || data["Personal Email"] || "",
           maritalStatus: data["Marital Status"] || "",
-          educationLevel: data.EducationalLevel || "",
+          educationalLevel: data.EducationalLevel || "",
           gender: data.Gender || "",
           companyName: data.companyName || "Company",
           nationalId: data["National ID Number"] || "",
@@ -211,7 +211,7 @@ function PersonalInfo() {
     if (!changed) return;
     const requiredFields = [
       "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
-      "educationLevel", "gender", "nationalId", "nationality", "postalCode",
+      "educationalLevel", "gender", "nationalId", "nationality", "postalCode",
       "streetAddress", "streetNumber", "area", "city", "apartment",
       "emergencyContactName", "emergencyContactNumber",
     ];
@@ -365,9 +365,9 @@ function PersonalInfo() {
       <TextField
         select
         fullWidth
-        label="Education Level"
-        name="educationLevel"
-        value={formData.educationLevel || ""}
+        label="Educational Level"
+        name="educationalLevel"
+        value={formData.EducationalLevel || ""}
         onChange={handleChange}
         error={errorFields.includes("educationLevel")}
         helperText={errorFields.includes("educationLevel") ? "Required" : ""}
