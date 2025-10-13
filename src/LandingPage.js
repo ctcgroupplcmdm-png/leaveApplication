@@ -44,7 +44,7 @@ function LandingPage() {
       const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
       try {
-        // Fetch user info
+        // 🟦 1️⃣ Fetch user info
         const infoRes = await fetch(urlUserInfo, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -52,20 +52,22 @@ function LandingPage() {
         });
         const infoData = await infoRes.json();
 
-        // Fetch user status
-        const statusRes = await fetch(urlUserStatus, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ oid }),
-        });
-        const statusData = await statusRes.json();
+        const employeeId = infoData.employeeId;
 
         setUserData({
           name: infoData.displayName,
-          employeeId: infoData.employeeId,
+          employeeId: employeeId,
           phone: infoData.mobilePhone,
           companyName: infoData.companyName || "Company",
         });
+
+        // 🟩 2️⃣ Fetch user status — send both oid and employeeId
+        const statusRes = await fetch(urlUserStatus, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oid, employeeId }),
+        });
+        const statusData = await statusRes.json();
 
         setUserStatus(statusData.status || statusData.Status || "Unknown");
       } catch (err) {
