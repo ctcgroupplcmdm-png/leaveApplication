@@ -26,7 +26,7 @@ const companyLogos = {
 function LandingPage() {
   const { instance, accounts } = useMsal();
   const [userData, setUserData] = useState(null);
-  const [userStatus, setUserStatus] = useState(null);
+  const [userStatus, setUserStatus] = useState("Unknown");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -69,7 +69,14 @@ function LandingPage() {
         });
         const statusData = await statusRes.json();
 
-        setUserStatus(statusData.status || statusData.Status || "Unknown");
+        // 🟢 Normalize boolean to string
+        setUserStatus(
+          statusData.status === true
+            ? "Active"
+            : statusData.status === false
+            ? "Inactive"
+            : "Unknown"
+        );
       } catch (err) {
         console.error("Error fetching user data or status:", err);
       } finally {
@@ -106,6 +113,7 @@ function LandingPage() {
         justifyContent="space-between"
         sx={{ mb: 3 }}
       >
+        {/* Company Logo + Name */}
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
             <img
@@ -119,6 +127,7 @@ function LandingPage() {
           </Typography>
         </Grid>
 
+        {/* Logout Button */}
         <Grid item>
           <Button variant="outlined" color="error" onClick={logout}>
             Logout
@@ -139,15 +148,16 @@ function LandingPage() {
         <Chip
           label={`Status: ${userStatus}`}
           color={
-            userStatus?.toLowerCase() === "active"
+            userStatus.toLowerCase() === "active"
               ? "success"
-              : userStatus?.toLowerCase() === "inactive"
+              : userStatus.toLowerCase() === "inactive"
               ? "error"
               : "default"
           }
           sx={{ fontSize: "1rem", mt: 1 }}
         />
 
+        {/* Company Chip */}
         <Chip
           label={userData.companyName}
           color="primary"
