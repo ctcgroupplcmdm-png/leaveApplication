@@ -7,6 +7,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -69,12 +70,12 @@ function LandingPage() {
         });
         const statusData = await statusRes.json();
 
-        // 🟢 Normalize boolean to string
+        // 🟢 Interpret status = true → needs update
         setUserStatus(
           statusData.status === true
-            ? "Active"
+            ? "NeedsUpdate"
             : statusData.status === false
-            ? "Inactive"
+            ? "UpToDate"
             : "Unknown"
         );
       } catch (err) {
@@ -144,68 +145,81 @@ function LandingPage() {
           Employee ID: {userData.employeeId}
         </Typography>
 
-        {/* 🟢 Status Chip */}
-        <Chip
-          label={`Status: ${userStatus}`}
-          color={
-            userStatus.toLowerCase() === "active"
-              ? "success"
-              : userStatus.toLowerCase() === "inactive"
-              ? "error"
-              : "default"
-          }
-          sx={{ fontSize: "1rem", mt: 1 }}
-        />
-
         {/* Company Chip */}
         <Chip
           label={userData.companyName}
           color="primary"
-          sx={{ fontSize: "1rem", mt: 1, ml: 1 }}
+          sx={{ fontSize: "1rem", mt: 1 }}
         />
       </Box>
 
-      {/* Action Buttons */}
+      {/* Action Buttons + Warning */}
       <Box
         sx={{
           display: "flex",
-          justifyContent: "center",
-          gap: 4,
+          flexDirection: "column",
+          alignItems: "center",
           mt: 8,
-          flexWrap: "wrap",
+          gap: 3,
         }}
       >
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
+        <Box
           sx={{
-            px: 5,
-            py: 2,
-            textTransform: "none",
-            fontSize: "1.1rem",
-            borderRadius: "12px",
+            display: "flex",
+            justifyContent: "center",
+            gap: 4,
+            flexWrap: "wrap",
           }}
-          onClick={() => navigate("/annual-leave")}
         >
-          🗓 Annual Leave Portal
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            sx={{
+              px: 5,
+              py: 2,
+              textTransform: "none",
+              fontSize: "1.1rem",
+              borderRadius: "12px",
+            }}
+            onClick={() => navigate("/annual-leave")}
+          >
+            🗓 Annual Leave Portal
+          </Button>
 
-        <Button
-          variant="contained"
-          color="success"
-          size="large"
-          sx={{
-            px: 5,
-            py: 2,
-            textTransform: "none",
-            fontSize: "1.1rem",
-            borderRadius: "12px",
-          }}
-          onClick={() => navigate("/personal-info")}
-        >
-          👤 Personal Information
-        </Button>
+          <Button
+            variant="contained"
+            color="success"
+            size="large"
+            sx={{
+              px: 5,
+              py: 2,
+              textTransform: "none",
+              fontSize: "1.1rem",
+              borderRadius: "12px",
+            }}
+            onClick={() => navigate("/personal-info")}
+          >
+            👤 Personal Information
+          </Button>
+        </Box>
+
+        {/* ⚠️ Show warning if user needs update */}
+        {userStatus === "NeedsUpdate" && (
+          <Alert
+            severity="warning"
+            sx={{
+              mt: 3,
+              maxWidth: "600px",
+              textAlign: "center",
+              borderRadius: "12px",
+              fontSize: "1rem",
+            }}
+          >
+            ⚠️ Our records show you haven’t updated your personal information
+            in over 2 years. Please review and update your details.
+          </Alert>
+        )}
       </Box>
     </Box>
   );
