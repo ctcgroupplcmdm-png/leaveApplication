@@ -318,7 +318,7 @@ function PersonalInfo() {
           <Grid item xs={12} md={4}>
             <TextField
               select fullWidth label="Educational Level" name="educationalLevel"
-              value={formData.EducationalLevel} onChange={handleChange}
+              value={formData.educationalLevel} onChange={handleChange}
             >
               <MenuItem value="High School">High School</MenuItem>
               <MenuItem value="Diploma">Diploma</MenuItem>
