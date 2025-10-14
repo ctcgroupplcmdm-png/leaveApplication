@@ -17,12 +17,18 @@ import {
   FormControlLabel,
   Checkbox,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  Alert,
 } from "@mui/material";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Map company names to logo filenames
 const companyLogos = {
   "Argosy Trading Company Ltd": "argosy.png",
   "Cyprus Trading Corporation Plc": "ctc.png",
@@ -45,6 +51,17 @@ function UserInfo() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
 
+  // 🟩 Modal state
+  const [openModal, setOpenModal] = useState(false);
+  const [form, setForm] = useState({
+    reason: "Annual Leave",
+    fromDate: "",
+    toDate: "",
+    daysTaken: 0,
+    submissionDate: new Date().toISOString().split("T")[0],
+  });
+  const [warning, setWarning] = useState("");
+
   const fetchLeaveData = (oid, year) => {
     setLoading(true);
     fetch(
@@ -59,20 +76,14 @@ function UserInfo() {
       .then((data) => {
         if (data.leavesTaken) {
           const parsedLeaves = JSON.parse(data.leavesTaken);
-
-          // Find "Yearly Entitlement Balance" row first (hidden row)
           const entitlementRow = parsedLeaves.find(
             (l) => l["Absence Description"] === "Yearly Entitlement Balance"
           );
-          const annualAllowance =
-            entitlementRow?.["Remaining Balance"] || 0;
-
-          // Filter visible rows
+          const annualAllowance = entitlementRow?.["Remaining Balance"] || 0;
           const filtered = parsedLeaves.filter(
             (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
           );
           setLeaves(filtered);
-
           const lastBalance =
             filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
           setRemainingBalance({ annualAllowance, lastBalance });
@@ -128,12 +139,45 @@ function UserInfo() {
 
   const logout = () => instance.logoutRedirect();
 
-  // 🧾 Export to PDF
+  // 🧮 Calculate working days excluding weekends
+  const calculateWorkingDays = (start, end) => {
+    if (!start || !end) return 0;
+    let count = 0;
+    let current = new Date(start);
+    const endDate = new Date(end);
+    while (current <= endDate) {
+      const day = current.getDay();
+      if (day !== 0 && day !== 6) count++;
+      current.setDate(current.getDate() + 1);
+    }
+    return count;
+  };
+
+  // 🟦 Handle date changes and calculate days
+  const handleDateChange = (field, value) => {
+    const updated = { ...form, [field]: value };
+    if (field === "fromDate" || field === "toDate") {
+      const days = calculateWorkingDays(updated.fromDate, updated.toDate);
+      updated.daysTaken = days;
+    }
+    setForm(updated);
+
+    if (
+      remainingBalance?.lastBalance !== undefined &&
+      updated.daysTaken > remainingBalance.lastBalance
+    ) {
+      setWarning(
+        `⚠️ You only have ${remainingBalance.lastBalance} leave days remaining.`
+      );
+    } else {
+      setWarning("");
+    }
+  };
+
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
 
-    // Header with logo + company name
     const logoFile = companyLogos[userData.companyName]
       ? require(`./assets/logos/${companyLogos[userData.companyName]}`)
       : null;
@@ -149,7 +193,6 @@ function UserInfo() {
     doc.text(`Employee ID: ${userData.employeeId}`, 50, 37);
     doc.text(`Year: ${selectedYear}`, 50, 44);
 
-    // Leave records table
     autoTable(doc, {
       startY: 55,
       head: [["Type", "Start", "End", "Days", "Remaining"]],
@@ -177,17 +220,16 @@ function UserInfo() {
 
   const currentYear = new Date().getFullYear();
 
+  // 🟩 Submit form (for now does nothing)
+  const handleSubmit = () => {
+    if (warning) return;
+    console.log("Submitted leave request:", form);
+    setOpenModal(false);
+  };
+
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* Top Bar */}
-      <Grid
-        container
-        spacing={2}
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 3 }}
-      >
-        {/* Logo + Company Name */}
+      <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
             <img
@@ -200,10 +242,7 @@ function UserInfo() {
             {userData.companyName}
           </Typography>
         </Grid>
-
-        {/* Stats + Back + Logout */}
         <Grid item sx={{ display: "flex", gap: 2 }}>
-          
           <Chip
             label={`${remainingBalance?.annualAllowance || 0} Annual Allowance`}
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
@@ -213,12 +252,7 @@ function UserInfo() {
             color="primary"
             sx={{ fontWeight: "bold", fontSize: "1rem", p: 1 }}
           />
-		  <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => navigate("/")}
-            sx={{ mr: 2 }}
-          >
+          <Button variant="outlined" color="primary" onClick={() => navigate("/")} sx={{ mr: 2 }}>
             ← Back
           </Button>
           <Button variant="outlined" color="error" onClick={logout}>
@@ -227,7 +261,6 @@ function UserInfo() {
         </Grid>
       </Grid>
 
-      {/* Welcome */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Welcome {userData.name}
       </Typography>
@@ -235,13 +268,7 @@ function UserInfo() {
         Employee ID: {userData.employeeId}
       </Typography>
 
-      {/* Leave Section Header */}
-      <Grid
-        container
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mt: 4, mb: 2 }}
-      >
+      <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Typography variant="h5" fontWeight="bold">
             Leave Records
@@ -258,9 +285,7 @@ function UserInfo() {
             )}
           </Button>
           <Button
-            variant={
-              selectedYear === currentYear - 1 ? "contained" : "outlined"
-            }
+            variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
             onClick={() => setSelectedYear(currentYear - 1)}
             disabled={loading}
           >
@@ -270,21 +295,12 @@ function UserInfo() {
               currentYear - 1
             )}
           </Button>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={exportToPDF}
-            sx={{ ml: 2 }}
-          >
+          <Button variant="contained" color="success" onClick={exportToPDF} sx={{ ml: 2 }}>
             Save as PDF
           </Button>
         </Grid>
 
-        {/* Filters + New Leave */}
-        <Grid
-          item
-          sx={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}
-        >
+        <Grid item sx={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}>
           <FormGroup row>
             {leaveTypes.map((type, index) => (
               <FormControlLabel
@@ -302,6 +318,7 @@ function UserInfo() {
           <Button
             variant="contained"
             sx={{ textTransform: "none", backgroundColor: "#1976d2" }}
+            onClick={() => setOpenModal(true)}
           >
             + New Leave Request
           </Button>
@@ -313,31 +330,16 @@ function UserInfo() {
         <Table>
           <TableHead sx={{ backgroundColor: "#f1f5f9" }}>
             <TableRow>
-              <TableCell>
-                <b>Leave Type</b>
-              </TableCell>
-              <TableCell>
-                <b>Start Date</b>
-              </TableCell>
-              <TableCell>
-                <b>End Date</b>
-              </TableCell>
-              <TableCell>
-                <b>Days Deducted</b>
-              </TableCell>
-              <TableCell>
-                <b>Remaining Balance</b>
-              </TableCell>
+              <TableCell><b>Leave Type</b></TableCell>
+              <TableCell><b>Start Date</b></TableCell>
+              <TableCell><b>End Date</b></TableCell>
+              <TableCell><b>Days Deducted</b></TableCell>
+              <TableCell><b>Remaining Balance</b></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredLeaves.map((leave, index) => (
-              <TableRow
-                key={index}
-                sx={{
-                  backgroundColor: getRowColor(leave["Absence Description"]),
-                }}
-              >
+              <TableRow key={index} sx={{ backgroundColor: getRowColor(leave["Absence Description"]) }}>
                 <TableCell>{leave["Absence Description"]}</TableCell>
                 <TableCell>{leave["Start Date"]}</TableCell>
                 <TableCell>{leave["End Date"]}</TableCell>
@@ -348,6 +350,81 @@ function UserInfo() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* 🟩 Modal Form */}
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New Leave Request</DialogTitle>
+        <DialogContent>
+          <TextField
+            select
+            label="Reason for Leave"
+            fullWidth
+            sx={{ mt: 2 }}
+            value={form.reason}
+            onChange={(e) => setForm({ ...form, reason: e.target.value })}
+          >
+            <MenuItem value="Annual Leave">Annual Leave</MenuItem>
+            <MenuItem value="Sick Leave">Sick Leave</MenuItem>
+            <MenuItem value="Army Leave">Army Leave</MenuItem>
+          </TextField>
+
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={6}>
+              <TextField
+                label="From Date"
+                type="date"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                value={form.fromDate}
+                onChange={(e) => handleDateChange("fromDate", e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="To Date"
+                type="date"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                value={form.toDate}
+                onChange={(e) => handleDateChange("toDate", e.target.value)}
+              />
+            </Grid>
+          </Grid>
+
+          <TextField
+            label="Number of Working Days"
+            fullWidth
+            sx={{ mt: 2 }}
+            value={form.daysTaken}
+            InputProps={{ readOnly: true }}
+          />
+
+          <TextField
+            label="Submission Date"
+            fullWidth
+            sx={{ mt: 2 }}
+            value={form.submissionDate}
+            InputProps={{ readOnly: true }}
+          />
+
+          {warning && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              {warning}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenModal(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleSubmit}
+            disabled={!!warning || !form.fromDate || !form.toDate}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
