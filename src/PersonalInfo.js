@@ -204,7 +204,10 @@ function PersonalInfo() {
     "nationalId","nationality","postalCode","streetAddress","streetNumber","area","city",
     "apartment","emergencyContactName","emergencyContactNumber"
   ];
-  const missing = required.filter((f) => !formData[f]?.trim());
+  const missing = required.filter(
+  (f) => String(formData[f] ?? "").trim() === ""
+);
+
   if (missing.length) {
     setErrorFields(missing);
     setSnackbar({ open: true, message: "Please fill all required fields.", severity: "error" });
