@@ -287,6 +287,7 @@ const handleUpdate = () => {
       // ✅ Hide warning everywhere after success
       setShowWarning(false);
       localStorage.setItem("needsUpdate", "false");
+      navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
     })
     .catch((err) => {
       console.error("Update error:", err);
