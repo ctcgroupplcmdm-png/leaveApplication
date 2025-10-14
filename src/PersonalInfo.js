@@ -196,40 +196,58 @@ function PersonalInfo() {
 
   // --- Submit update
   const handleUpdate = () => {
-    if (!changed && !userNeedsUpdate) return;
+  // Always allow submit if userNeedsUpdate is true
+  if (!changed && !userNeedsUpdate) return;
 
-    const required = [
-      "fullName","employeeId","phone","personalEmail","maritalStatus","educationalLevel","gender",
-      "nationalId","nationality","postalCode","streetAddress","streetNumber","area","city",
-      "apartment","emergencyContactName","emergencyContactNumber"
-    ];
-    const missing = required.filter((f) => !formData[f]?.trim());
-    if (missing.length) {
-      setErrorFields(missing);
-      setSnackbar({ open: true, message: "Please fill all required fields.", severity: "error" });
-      return;
-    }
+  const required = [
+    "fullName","employeeId","phone","personalEmail","maritalStatus","educationalLevel","gender",
+    "nationalId","nationality","postalCode","streetAddress","streetNumber","area","city",
+    "apartment","emergencyContactName","emergencyContactNumber"
+  ];
+  const missing = required.filter((f) => !formData[f]?.trim());
+  if (missing.length) {
+    setErrorFields(missing);
+    setSnackbar({ open: true, message: "Please fill all required fields.", severity: "error" });
+    return;
+  }
 
-    const account = accounts[0];
-    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+  const account = accounts[0];
+  const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
-    setLoading(true);
-    fetch(urlUserInfo, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ oid, update: true, ...formData }),
+  setLoading(true);
+
+  // ✅ Always post to the same Logic App URL
+  fetch(urlUserInfo, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      oid,
+      update: true, // keep true for both normal and "Needs Update"
+      ...formData,
+    }),
+  })
+    .then((res) => res.json())
+    .then(() => {
+      setSnackbar({
+        open: true,
+        message: userNeedsUpdate
+          ? "Information confirmed successfully."
+          : "Information updated successfully.",
+        severity: "success",
+      });
+      setChanged(false);
+      setUserNeedsUpdate(false);
     })
-      .then((res) => res.json())
-      .then(() => {
-        setSnackbar({ open: true, message: "Information updated successfully.", severity: "success" });
-        setChanged(false);
-        setUserNeedsUpdate(false);
+    .catch(() =>
+      setSnackbar({
+        open: true,
+        message: "Failed to update information.",
+        severity: "error",
       })
-      .catch(() =>
-        setSnackbar({ open: true, message: "Failed to update information.", severity: "error" })
-      )
-      .finally(() => setLoading(false));
-  };
+    )
+    .finally(() => setLoading(false));
+};
+
 
   // --- On mount
  // --- Fetch user info once after login
