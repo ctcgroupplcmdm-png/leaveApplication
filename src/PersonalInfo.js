@@ -233,14 +233,22 @@ function PersonalInfo() {
 
   // --- On mount
   useEffect(() => {
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-      fetchUserInfo(oid);
-      setTimeout(() => fetchUserStatus(oid, formData.employeeId), 1500);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accounts, formData.employeeId]);
+  if (accounts.length > 0) {
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+    fetchUserInfo(oid);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [accounts]);
+
+useEffect(() => {
+  if (accounts.length > 0 && formData.employeeId) {
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+    fetchUserStatus(oid, formData.employeeId);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [formData.employeeId]);
 
   if (!userData)
     return (
@@ -323,7 +331,7 @@ function PersonalInfo() {
               <MenuItem value="High School">High School</MenuItem>
               <MenuItem value="Diploma">Diploma</MenuItem>
               <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
-              <MenuItem value="Masters Degree">Masters Degree</MenuItem>
+              <MenuItem value="Master's Degree">Master's Degree</MenuItem>
               <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
             </TextField>
           </Grid>
