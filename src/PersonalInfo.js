@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
@@ -24,6 +25,9 @@ import wwl from "./assets/logos/wwl.png";
 import apex from "./assets/logos/apex.png";
 import nks from "./assets/logos/nks.png";
 import limni from "./assets/logos/limni.png";
+
+const location = useLocation();
+const forceUpdate = location.state?.forceUpdate || false;
 
 const companyLogos = {
   "Argosy Trading Company Ltd": argosy,
@@ -284,6 +288,24 @@ function PersonalInfo() {
       <Typography variant="subtitle1" color="text.secondary" gutterBottom>
         Employee ID: {formData.employeeId}
       </Typography>
+
+      {forceUpdate && (
+  <Alert
+    severity="warning"
+    sx={{
+      mt: 2,
+      mb: 2,
+      maxWidth: "700px",
+      borderRadius: "10px",
+      backgroundColor: "#fffbe6",
+      border: "1px solid #ffe58f",
+    }}
+  >
+    Our records show you haven’t updated your personal information in over 2 years.  
+    Please review your details and press <strong>“Update Information”</strong> to confirm.
+  </Alert>
+)}
+
 
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
         {/* 📋 Personal Information */}
@@ -577,7 +599,8 @@ function PersonalInfo() {
 
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} textAlign="right">
-            <Button variant="contained" color="success" disabled={!changed || loading} onClick={handleUpdate}>
+            <Button variant="contained" color="success" disabled={(!changed && !forceUpdate) || loading}
+ onClick={handleUpdate}>
               {loading ? <CircularProgress size={24} /> : "Update Information"}
             </Button>
           </Grid>

@@ -188,20 +188,19 @@ function LandingPage() {
           </Button>
 
           <Button
-            variant="contained"
-            color="success"
-            size="large"
-            sx={{
-              px: 5,
-              py: 2,
-              textTransform: "none",
-              fontSize: "1.1rem",
-              borderRadius: "12px",
-            }}
-            onClick={() => navigate("/personal-info")}
-          >
-            👤 Personal Information
-          </Button>
+  variant="contained"
+  color="warning"
+  size="small"
+  sx={{
+    mt: 2,
+    textTransform: "none",
+    borderRadius: "8px",
+    fontWeight: "bold",
+  }}
+  onClick={() => navigate("/personal-info", { state: { forceUpdate: true } })}
+>
+  Update Now
+</Button>
         </Box>
 
         {/* ⚠️ Warning if user needs update */}
