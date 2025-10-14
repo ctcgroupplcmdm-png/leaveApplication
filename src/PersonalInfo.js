@@ -26,7 +26,9 @@ import apex from "./assets/logos/apex.png";
 import nks from "./assets/logos/nks.png";
 import limni from "./assets/logos/limni.png";
 
-const [showWarning, setShowWarning] = useState(localStorage.getItem("needsUpdate") === "true");
+const [showWarning, setShowWarning] = useState(
+  localStorage.getItem("needsUpdate") === "true"
+);
 
 
 const companyLogos = {
@@ -282,6 +284,11 @@ const handleUpdate = () => {
     )
     .finally(() => setLoading(false));
 };
+useEffect(() => {
+  if (localStorage.getItem("needsUpdate") === "false") {
+    setShowWarning(false);
+  }
+}, []);
 
 
   useEffect(() => {
