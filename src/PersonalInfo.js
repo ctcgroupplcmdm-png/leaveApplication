@@ -220,8 +220,8 @@ const forceUpdate = location.state?.forceUpdate || false;
   // Update
   // Update
 const handleUpdate = () => {
-  // ✅ Allow update if there are changes OR if forceUpdate is true
-  if (!changed && !forceUpdate) return;
+  // ✅ Allow update if there are changes OR if this is a forced/confirmation update
+  if (!changed && !forceUpdate && !showWarning) return;
 
   const requiredFields = [
     "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
@@ -230,10 +230,11 @@ const handleUpdate = () => {
     "emergencyContactName", "emergencyContactNumber",
   ];
 
-  // Skip required check if it's a force update confirmation only
-  const missing = !forceUpdate
-    ? requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "")
-    : [];
+  // Skip required-field validation when confirming outdated info (no changes)
+  const missing =
+    changed || (!changed && !forceUpdate && !showWarning)
+      ? requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "")
+      : [];
 
   if (missing.length > 0) {
     setErrorFields(missing);
@@ -245,17 +246,15 @@ const handleUpdate = () => {
     return;
   }
 
-  setErrorFields([]);
   const account = accounts[0];
   const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
   setLoading(true);
 
-  // ✅ Always include `confirmationOnly` flag for backend tracking if forced update
   const payload = {
     oid,
     update: true,
     ...formData,
-    confirmationOnly: forceUpdate && !changed, // mark confirmation-only case
+    confirmationOnly: !changed && (forceUpdate || showWarning), // tells Logic App this was just confirmation
   };
 
   fetch(urlUserInfo, {
@@ -263,30 +262,43 @@ const handleUpdate = () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   })
-    .then((res) => res.json())
+    .then(async (res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Logic App may not return JSON
+      try {
+        return await res.json();
+      } catch {
+        return null;
+      }
+    })
     .then(() => {
       setSnackbar({
         open: true,
-        message: forceUpdate && !changed
-          ? "Information confirmed successfully."
-          : "Information updated successfully.",
+        message:
+          !changed && (forceUpdate || showWarning)
+            ? "Information confirmed successfully."
+            : "Information updated successfully.",
         severity: "success",
       });
       originalData.current = formData;
       setChanged(false);
-        setShowWarning(false);
-  localStorage.setItem("needsUpdate", "false");
 
+      // ✅ Hide warning everywhere after success
+      setShowWarning(false);
+      localStorage.setItem("needsUpdate", "false");
     })
-    .catch(() =>
+    .catch((err) => {
+      console.error("Update error:", err);
       setSnackbar({
         open: true,
         message: "Failed to update information.",
         severity: "error",
-      })
-    )
+      });
+    })
     .finally(() => setLoading(false));
 };
+
 useEffect(() => {
   if (localStorage.getItem("needsUpdate") === "false") {
     setShowWarning(false);
