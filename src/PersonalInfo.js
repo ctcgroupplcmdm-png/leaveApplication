@@ -550,7 +550,7 @@ const forceUpdate = location.state?.forceUpdate || false;
                 helperText={errorFields.includes("city") ? "Required" : ""}
               />
             </Grid>
-          </Grid>
+          
 
           
             <Grid item xs={12} md={2.4}>
@@ -564,7 +564,7 @@ const forceUpdate = location.state?.forceUpdate || false;
                 helperText={errorFields.includes("apartment") ? "Required" : ""}
               />
             </Grid>
-          
+          </Grid>
         </Paper>
 
         {/* ☎️ Emergency Contact */}
