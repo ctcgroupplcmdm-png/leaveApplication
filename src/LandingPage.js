@@ -45,7 +45,7 @@ function LandingPage() {
       const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
       try {
-        // 🟦 1️⃣ Fetch user info
+        // 🟦 Fetch user info
         const infoRes = await fetch(urlUserInfo, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -62,7 +62,7 @@ function LandingPage() {
           companyName: infoData.companyName || "Company",
         });
 
-        // 🟩 2️⃣ Fetch user status — send both oid and employeeId
+        // 🟩 Fetch user status
         const statusRes = await fetch(urlUserStatus, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ function LandingPage() {
         });
         const statusData = await statusRes.json();
 
-        // 🟢 Interpret status = true → Needs update
+        // 🟢 Interpret status
         setUserStatus(
           statusData.status === true
             ? "NeedsUpdate"
@@ -106,7 +106,7 @@ function LandingPage() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* Top Bar */}
+      {/* 🔹 Header Bar */}
       <Grid
         container
         spacing={2}
@@ -114,7 +114,6 @@ function LandingPage() {
         justifyContent="space-between"
         sx={{ mb: 3 }}
       >
-        {/* Company Logo + Name */}
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
             <img
@@ -128,7 +127,6 @@ function LandingPage() {
           </Typography>
         </Grid>
 
-        {/* Logout Button */}
         <Grid item>
           <Button variant="outlined" color="error" onClick={logout}>
             Logout
@@ -136,7 +134,7 @@ function LandingPage() {
         </Grid>
       </Grid>
 
-      {/* Welcome Section */}
+      {/* 🔹 Welcome Message */}
       <Box textAlign="center" sx={{ mt: 10 }}>
         <Typography variant="h3" fontWeight="bold" gutterBottom>
           Welcome, {userData.name}
@@ -145,7 +143,6 @@ function LandingPage() {
           Employee ID: {userData.employeeId}
         </Typography>
 
-        {/* Company Chip */}
         <Chip
           label={userData.companyName}
           color="primary"
@@ -153,7 +150,7 @@ function LandingPage() {
         />
       </Box>
 
-      {/* Action Buttons + Warning */}
+      {/* 🔹 Buttons + Warning Banner */}
       <Box
         sx={{
           display: "flex",
@@ -163,6 +160,7 @@ function LandingPage() {
           gap: 3,
         }}
       >
+        {/* Buttons Row */}
         <Box
           sx={{
             display: "flex",
@@ -187,23 +185,25 @@ function LandingPage() {
             🗓 Annual Leave Portal
           </Button>
 
+          {/* ✅ Keep Personal Information Button */}
           <Button
-  variant="contained"
-  color="warning"
-  size="small"
-  sx={{
-    mt: 2,
-    textTransform: "none",
-    borderRadius: "8px",
-    fontWeight: "bold",
-  }}
-  onClick={() => navigate("/personal-info", { state: { forceUpdate: true } })}
->
-  Update Now
-</Button>
+            variant="contained"
+            color="success"
+            size="large"
+            sx={{
+              px: 5,
+              py: 2,
+              textTransform: "none",
+              fontSize: "1.1rem",
+              borderRadius: "12px",
+            }}
+            onClick={() => navigate("/personal-info")}
+          >
+            👤 Personal Information
+          </Button>
         </Box>
 
-        {/* ⚠️ Warning if user needs update */}
+        {/* ⚠️ Warning Banner (kept as is) */}
         {userStatus === "NeedsUpdate" && (
           <Alert
             severity="warning"
@@ -218,7 +218,7 @@ function LandingPage() {
               alignItems: "center",
             }}
           >
-             Our records show you haven’t updated your personal information in
+            Our records show you haven’t updated your personal information in
             over 2 years.
             <Button
               variant="contained"
@@ -230,7 +230,9 @@ function LandingPage() {
                 borderRadius: "8px",
                 fontWeight: "bold",
               }}
-              onClick={() => navigate("/personal-info")}
+              onClick={() =>
+                navigate("/personal-info", { state: { forceUpdate: true } })
+              }
             >
               Update Now
             </Button>
