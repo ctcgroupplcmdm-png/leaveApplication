@@ -650,7 +650,7 @@ useEffect(() => {
 
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} textAlign="right">
-            <Button variant="contained" color="success" disabled={(!changed && !forceUpdate) || loading}
+            <Button variant="contained" color="success" disabled={showWarning || loading}
  onClick={handleUpdate}>
               {loading ? <CircularProgress size={24} /> : "Update Information"}
             </Button>
