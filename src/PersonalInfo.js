@@ -26,8 +26,7 @@ import apex from "./assets/logos/apex.png";
 import nks from "./assets/logos/nks.png";
 import limni from "./assets/logos/limni.png";
 
-const location = useLocation();
-const forceUpdate = location.state?.forceUpdate || false;
+
 
 const companyLogos = {
   "Argosy Trading Company Ltd": argosy,
@@ -79,6 +78,8 @@ const withCurrentOption = (options, current) => {
 function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
+  const location = useLocation();
+const forceUpdate = location.state?.forceUpdate || false;
   const originalData = useRef(null);
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
