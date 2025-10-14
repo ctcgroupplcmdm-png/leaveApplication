@@ -552,7 +552,7 @@ const forceUpdate = location.state?.forceUpdate || false;
             </Grid>
           </Grid>
 
-          <Grid container spacing={3} mt={1}>
+          
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
@@ -564,7 +564,7 @@ const forceUpdate = location.state?.forceUpdate || false;
                 helperText={errorFields.includes("apartment") ? "Required" : ""}
               />
             </Grid>
-          </Grid>
+          
         </Paper>
 
         {/* ☎️ Emergency Contact */}
