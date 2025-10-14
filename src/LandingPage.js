@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
+import Tooltip from "@mui/material/Tooltip";
+
 import {
   Box,
   Grid,
@@ -172,23 +174,35 @@ function LandingPage() {
             flexWrap: "wrap",
           }}
         >
-          <Button
-  variant="contained"
-  color="primary"
-  size="large"
-  sx={{
-    px: 5,
-    py: 2,
-    textTransform: "none",
-    fontSize: "1.1rem",
-    borderRadius: "12px",
-    opacity: userStatus === "NeedsUpdate" ? 0.6 : 1, // dim when disabled
-  }}
-  disabled={userStatus === "NeedsUpdate"} // ✅ Disable when banner visible
-  onClick={() => navigate("/annual-leave")}
+          <Tooltip
+  title={
+    userStatus === "NeedsUpdate"
+      ? "Access to the Annual Leave Portal is disabled until your personal information is updated."
+      : ""
+  }
 >
-  🗓 Annual Leave Portal
-</Button>
+  {/* Tooltip needs a wrapper <span> when button is disabled */}
+  <span>
+    <Button
+      variant="contained"
+      color="primary"
+      size="large"
+      sx={{
+        px: 5,
+        py: 2,
+        textTransform: "none",
+        fontSize: "1.1rem",
+        borderRadius: "12px",
+        opacity: userStatus === "NeedsUpdate" ? 0.6 : 1,
+      }}
+      disabled={userStatus === "NeedsUpdate"}
+      onClick={() => navigate("/annual-leave")}
+    >
+      🗓 Annual Leave Portal
+    </Button>
+  </span>
+</Tooltip>
+
 
 
           {/* ✅ Keep Personal Information Button */}
