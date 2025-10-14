@@ -212,38 +212,73 @@ const forceUpdate = location.state?.forceUpdate || false;
   };
 
   // Update
-  const handleUpdate = () => {
-    if (!changed) return;
-    const requiredFields = [
-      "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
-      "educationalLevel", "gender", "nationalId", "nationality", "postalCode",
-      "streetAddress", "streetNumber", "area", "city", "apartment",
-      "emergencyContactName", "emergencyContactNumber",
-    ];
-    const missing = requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "");
-    if (missing.length > 0) {
-      setErrorFields(missing);
-      setSnackbar({ open: true, message: "Please fill in all required fields before updating.", severity: "error" });
-      return;
-    }
-    setErrorFields([]);
-    const account = accounts[0];
-    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-    setLoading(true);
-    fetch(urlUserInfo, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ oid, update: true, ...formData }),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setSnackbar({ open: true, message: "Information updated successfully.", severity: "success" });
-        originalData.current = formData;
-        setChanged(false);
-      })
-      .catch(() => setSnackbar({ open: true, message: "Failed to update information.", severity: "error" }))
-      .finally(() => setLoading(false));
+  // Update
+const handleUpdate = () => {
+  // ✅ Allow update if there are changes OR if forceUpdate is true
+  if (!changed && !forceUpdate) return;
+
+  const requiredFields = [
+    "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
+    "educationalLevel", "gender", "nationalId", "nationality", "postalCode",
+    "streetAddress", "streetNumber", "area", "city", "apartment",
+    "emergencyContactName", "emergencyContactNumber",
+  ];
+
+  // Skip required check if it's a force update confirmation only
+  const missing = !forceUpdate
+    ? requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "")
+    : [];
+
+  if (missing.length > 0) {
+    setErrorFields(missing);
+    setSnackbar({
+      open: true,
+      message: "Please fill in all required fields before updating.",
+      severity: "error",
+    });
+    return;
+  }
+
+  setErrorFields([]);
+  const account = accounts[0];
+  const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+  setLoading(true);
+
+  // ✅ Always include `confirmationOnly` flag for backend tracking if forced update
+  const payload = {
+    oid,
+    update: true,
+    ...formData,
+    confirmationOnly: forceUpdate && !changed, // mark confirmation-only case
   };
+
+  fetch(urlUserInfo, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+    .then((res) => res.json())
+    .then(() => {
+      setSnackbar({
+        open: true,
+        message: forceUpdate && !changed
+          ? "Information confirmed successfully."
+          : "Information updated successfully.",
+        severity: "success",
+      });
+      originalData.current = formData;
+      setChanged(false);
+    })
+    .catch(() =>
+      setSnackbar({
+        open: true,
+        message: "Failed to update information.",
+        severity: "error",
+      })
+    )
+    .finally(() => setLoading(false));
+};
+
 
   useEffect(() => {
     if (accounts.length > 0) {
