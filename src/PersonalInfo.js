@@ -26,9 +26,7 @@ import apex from "./assets/logos/apex.png";
 import nks from "./assets/logos/nks.png";
 import limni from "./assets/logos/limni.png";
 
-const [showWarning, setShowWarning] = useState(
-  localStorage.getItem("needsUpdate") === "true"
-);
+
 
 
 const companyLogos = {
@@ -82,6 +80,11 @@ function PersonalInfo() {
   const { instance, accounts } = useMsal();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [showWarning, setShowWarning] = useState(
+  localStorage.getItem("needsUpdate") === "true"
+);
+
 const forceUpdate = location.state?.forceUpdate || false;
   const originalData = useRef(null);
   const [userData, setUserData] = useState(null);
