@@ -173,20 +173,23 @@ function LandingPage() {
           }}
         >
           <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            sx={{
-              px: 5,
-              py: 2,
-              textTransform: "none",
-              fontSize: "1.1rem",
-              borderRadius: "12px",
-            }}
-            onClick={() => navigate("/annual-leave")}
-          >
-            🗓 Annual Leave Portal
-          </Button>
+  variant="contained"
+  color="primary"
+  size="large"
+  sx={{
+    px: 5,
+    py: 2,
+    textTransform: "none",
+    fontSize: "1.1rem",
+    borderRadius: "12px",
+    opacity: userStatus === "NeedsUpdate" ? 0.6 : 1, // dim when disabled
+  }}
+  disabled={userStatus === "NeedsUpdate"} // ✅ Disable when banner visible
+  onClick={() => navigate("/annual-leave")}
+>
+  🗓 Annual Leave Portal
+</Button>
+
 
           {/* ✅ Keep Personal Information Button */}
           <Button
