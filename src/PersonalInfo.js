@@ -232,7 +232,8 @@ function PersonalInfo() {
   };
 
   // --- On mount
-  useEffect(() => {
+ // --- Fetch user info once after login
+useEffect(() => {
   if (accounts.length > 0) {
     const account = accounts[0];
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
@@ -241,6 +242,7 @@ function PersonalInfo() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [accounts]);
 
+// --- Fetch user status AFTER user info has loaded (employeeId present)
 useEffect(() => {
   if (accounts.length > 0 && formData.employeeId) {
     const account = accounts[0];
@@ -249,6 +251,7 @@ useEffect(() => {
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [formData.employeeId]);
+
 
   if (!userData)
     return (
