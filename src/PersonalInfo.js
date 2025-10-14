@@ -26,6 +26,7 @@ import apex from "./assets/logos/apex.png";
 import nks from "./assets/logos/nks.png";
 import limni from "./assets/logos/limni.png";
 
+const [showWarning, setShowWarning] = useState(localStorage.getItem("needsUpdate") === "true");
 
 
 const companyLogos = {
@@ -268,6 +269,9 @@ const handleUpdate = () => {
       });
       originalData.current = formData;
       setChanged(false);
+        setShowWarning(false);
+  localStorage.setItem("needsUpdate", "false");
+
     })
     .catch(() =>
       setSnackbar({
@@ -325,7 +329,7 @@ const handleUpdate = () => {
         Employee ID: {formData.employeeId}
       </Typography>
 
-      {forceUpdate && (
+      {showWarning && (
   <Alert
     severity="warning"
     sx={{
@@ -341,6 +345,7 @@ const handleUpdate = () => {
     Please review your details and press <strong>“Update Information”</strong> to confirm.
   </Alert>
 )}
+
 
 
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>

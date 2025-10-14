@@ -38,55 +38,58 @@ function LandingPage() {
     "https://prod-165.westeurope.logic.azure.com:443/workflows/c484da6f94ad4cd5aea8a92377375728/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=Bt8eh3QsyGHRYRmzqf2S0ujsaGxgxyVqUyCpYQmiIMY";
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (accounts.length === 0) return;
+  const fetchData = async () => {
+    if (accounts.length === 0) return;
 
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
-      try {
-        // 🟦 Fetch user info
-        const infoRes = await fetch(urlUserInfo, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ oid }),
-        });
-        const infoData = await infoRes.json();
+    try {
+      const infoRes = await fetch(urlUserInfo, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oid }),
+      });
+      const infoData = await infoRes.json();
 
-        const employeeId = infoData.employeeId;
+      const employeeId = infoData.employeeId;
 
-        setUserData({
-          name: infoData.displayName,
-          employeeId: employeeId,
-          phone: infoData.mobilePhone,
-          companyName: infoData.companyName || "Company",
-        });
+      setUserData({
+        name: infoData.displayName,
+        employeeId: employeeId,
+        phone: infoData.mobilePhone,
+        companyName: infoData.companyName || "Company",
+      });
 
-        // 🟩 Fetch user status
-        const statusRes = await fetch(urlUserStatus, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ oid, employeeId }),
-        });
-        const statusData = await statusRes.json();
+      // 🟩 Fetch user status
+      const statusRes = await fetch(urlUserStatus, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oid, employeeId }),
+      });
+      const statusData = await statusRes.json();
 
-        // 🟢 Interpret status
-        setUserStatus(
-          statusData.status === true
-            ? "NeedsUpdate"
-            : statusData.status === false
-            ? "UpToDate"
-            : "Unknown"
-        );
-      } catch (err) {
-        console.error("Error fetching user data or status:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const status =
+        statusData.status === true
+          ? "NeedsUpdate"
+          : statusData.status === false
+          ? "UpToDate"
+          : "Unknown";
 
-    fetchData();
-  }, [accounts]);
+      setUserStatus(status);
+
+      // 🧠 Save it so PersonalInfo can read it
+      localStorage.setItem("needsUpdate", status === "NeedsUpdate" ? "true" : "false");
+    } catch (err) {
+      console.error("Error fetching user data or status:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [accounts]);
+
 
   const logout = () => instance.logoutRedirect();
 
