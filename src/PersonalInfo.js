@@ -296,7 +296,7 @@ if (showIdUpload) {
   uploadFormData.append("backId", backIdFile);
 
   // 🔹 Send files to the separate Logic App (replace URL)
-  await fetch("https://<YOUR-UPLOAD-LOGIC-APP-URL>", {
+  await fetch("https://prod-29.westeurope.logic.azure.com:443/workflows/bc2c79c0b43349efb92d98f11845bbc8/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=k5Xj1UP0jocR307QcQtkrdxGgL2wlEzzgbFyoPPEDJU", {
     method: "POST",
     body: uploadFormData,
   });
