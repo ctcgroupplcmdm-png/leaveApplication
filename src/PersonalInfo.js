@@ -240,7 +240,8 @@ useEffect(() => {
 
 
   // Update
-const handleUpdate = () => {
+const handleUpdate = async () => {
+
   // ✅ Allow update if there are changes OR if this is a forced/confirmation update
   if (!changed && !forceUpdate && !showWarning) return;
 
