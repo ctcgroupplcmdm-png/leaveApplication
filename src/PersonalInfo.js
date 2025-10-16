@@ -117,6 +117,13 @@ const forceUpdate = location.state?.forceUpdate || false;
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
+// For ID upload
+const [frontIdFile, setFrontIdFile] = useState(null);
+const [backIdFile, setBackIdFile] = useState(null);
+const [showIdUpload, setShowIdUpload] = useState(false);
+const [uploading, setUploading] = useState(false);
+
+  
 
   const urlUserInfo =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
@@ -216,8 +223,22 @@ const forceUpdate = location.state?.forceUpdate || false;
     setFormData(updated);
     setChanged(hasChanges(updated, originalData.current));
   };
+useEffect(() => {
+  if (!originalData.current) return;
+  const idChanged =
+    formData.nationalId !== originalData.current.nationalId ||
+    formData.nationalIdExpiration !== originalData.current.nationalIdExpiration;
 
-  // Update
+  setShowIdUpload(idChanged);
+  if (!idChanged) {
+    setFrontIdFile(null);
+    setBackIdFile(null);
+  }
+}, [formData.nationalId, formData.nationalIdExpiration]);
+
+  
+
+
   // Update
 const handleUpdate = () => {
   // ✅ Allow update if there are changes OR if this is a forced/confirmation update
@@ -322,6 +343,45 @@ useEffect(() => {
     );
 
   const logout = () => instance.logoutRedirect();
+
+  const handleUploadIds = async () => {
+  if (!frontIdFile || !backIdFile) {
+    setSnackbar({
+      open: true,
+      message: "Please upload both front and back ID images.",
+      severity: "error",
+    });
+    return;
+  }
+
+  const formDataUpload = new FormData();
+  formDataUpload.append("employeeId", formData.employeeId);
+  formDataUpload.append("frontId", frontIdFile);
+  formDataUpload.append("backId", backIdFile);
+
+  setUploading(true);
+  try {
+    await fetch("https://<YOUR-LOGIC-APP-URL>", {
+      method: "POST",
+      body: formDataUpload,
+    });
+    setSnackbar({
+      open: true,
+      message: "ID images uploaded successfully.",
+      severity: "success",
+    });
+  } catch (err) {
+    console.error("Upload error:", err);
+    setSnackbar({
+      open: true,
+      message: "Failed to upload ID images.",
+      severity: "error",
+    });
+  } finally {
+    setUploading(false);
+  }
+};
+
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
@@ -533,6 +593,65 @@ useEffect(() => {
                 ))}
               </TextField>
             </Grid>
+{showIdUpload && (
+  <>
+    <Grid item xs={12}>
+      <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
+        Upload Updated ID (Required)
+      </Typography>
+    </Grid>
+
+    <Grid item xs={12} md={6}>
+      <Button
+        variant="contained"
+        component="label"
+        color={frontIdFile ? "success" : "primary"}
+        fullWidth
+      >
+        {frontIdFile ? `Front ID: ${frontIdFile.name}` : "Upload Front ID"}
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => setFrontIdFile(e.target.files[0])}
+          required
+        />
+      </Button>
+    </Grid>
+
+    <Grid item xs={12} md={6}>
+      <Button
+        variant="contained"
+        component="label"
+        color={backIdFile ? "success" : "primary"}
+        fullWidth
+      >
+        {backIdFile ? `Back ID: ${backIdFile.name}` : "Upload Back ID"}
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => setBackIdFile(e.target.files[0])}
+          required
+        />
+      </Button>
+    </Grid>
+
+    <Grid item xs={12} textAlign="right">
+      <Button
+        variant="outlined"
+        color="secondary"
+        disabled={uploading}
+        onClick={handleUploadIds}
+      >
+        {uploading ? <CircularProgress size={24} /> : "Upload ID Images"}
+      </Button>
+    </Grid>
+  </>
+)}
+
+
+
           </Grid>
         </Paper>
 
