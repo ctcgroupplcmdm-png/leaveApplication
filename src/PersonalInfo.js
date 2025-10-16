@@ -114,7 +114,7 @@ function PersonalInfo() {
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
 
-  // 🆕 Added image upload states
+  // 🆕 Added: ID upload states
   const [idFrontImage, setIdFrontImage] = useState(null);
   const [idBackImage, setIdBackImage] = useState(null);
   const [requireIdImages, setRequireIdImages] = useState(false);
@@ -124,7 +124,6 @@ function PersonalInfo() {
   const urlAddressLookup =
     "https://prod-24.westeurope.logic.azure.com:443/workflows/f0e93ec5ec1343a6bd52326577282aca/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=0c8NQEn0LBb8i5jEBUgpns8y8hSFZqOsG19f_Ktwzkw";
 
-  // Fetch user info
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(urlUserInfo, {
@@ -321,7 +320,7 @@ function PersonalInfo() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* header */}
+      {/* Header */}
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
@@ -398,7 +397,7 @@ function PersonalInfo() {
         </Grid>
       </Paper>
 
-      {/* 🆕 Image Uploads */}
+      {/* 🆕 ID Image Upload */}
       {requireIdImages && (
         <Paper elevation={1} sx={{ mt: 2, p: 3, backgroundColor: "#fff8e1", borderRadius: 2 }}>
           <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
@@ -442,6 +441,129 @@ function PersonalInfo() {
         </Paper>
       )}
 
+      {/* 🏠 Residential Address */}
+      <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+          🏠 Residential Address
+        </Typography>
+
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={2.4}>
+            <TextField
+              fullWidth
+              label="Postal Code"
+              name="postalCode"
+              value={formData.postalCode}
+              onChange={handleChange}
+              error={errorFields.includes("postalCode")}
+              helperText={errorFields.includes("postalCode") ? "Required" : ""}
+            />
+          </Grid>
+          <Grid item xs={12} md={2.4}>
+            <TextField
+              select
+              fullWidth
+              label="Street Address"
+              name="streetAddress"
+              value={formData.streetAddress || ""}
+              onChange={handleChange}
+              SelectProps={{ displayEmpty: true }}
+              InputProps={{
+                endAdornment: addressLoading ? (
+                  <InputAdornment position="end">
+                    <CircularProgress size={20} />
+                  </InputAdornment>
+                ) : null,
+              }}
+              error={errorFields.includes("streetAddress")}
+              helperText={errorFields.includes("streetAddress") ? "Required" : ""}
+            >
+              {withCurrentOption(streetOptions, formData.streetAddress).map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} md={2.4}>
+            <TextField
+              fullWidth
+              label="Street Number"
+              name="streetNumber"
+              value={formData.streetNumber}
+              onChange={handleChange}
+              error={errorFields.includes("streetNumber")}
+              helperText={errorFields.includes("streetNumber") ? "Required" : ""}
+            />
+          </Grid>
+          <Grid item xs={12} md={2.4}>
+            <TextField
+              fullWidth
+              label="Area"
+              name="area"
+              value={formData.area}
+              InputProps={{ readOnly: true }}
+              error={errorFields.includes("area")}
+              helperText={errorFields.includes("area") ? "Required" : ""}
+            />
+          </Grid>
+          <Grid item xs={12} md={2.4}>
+            <TextField
+              fullWidth
+              label="City"
+              name="city"
+              value={formData.city}
+              InputProps={{ readOnly: true }}
+              error={errorFields.includes("city")}
+              helperText={errorFields.includes("city") ? "Required" : ""}
+            />
+          </Grid>
+          <Grid item xs={12} md={2.4}>
+            <TextField
+              fullWidth
+              label="Apartment"
+              name="apartment"
+              value={formData.apartment}
+              onChange={handleChange}
+              error={errorFields.includes("apartment")}
+              helperText={errorFields.includes("apartment") ? "Required" : ""}
+            />
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* ☎️ Emergency Contact */}
+      <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+          ☎️ Emergency Contact
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Emergency Contact Name"
+              name="emergencyContactName"
+              value={formData.emergencyContactName}
+              onChange={handleChange}
+              error={errorFields.includes("emergencyContactName")}
+              helperText={errorFields.includes("emergencyContactName") ? "Required" : ""}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Emergency Contact Number"
+              name="emergencyContactNumber"
+              value={formData.emergencyContactNumber}
+              onChange={handleChange}
+              error={errorFields.includes("emergencyContactNumber")}
+              helperText={errorFields.includes("emergencyContactNumber") ? "Required" : ""}
+            />
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Submit button */}
       <Grid container spacing={3} mt={3} alignItems="center">
         <Grid item xs={12} textAlign="right">
           <Button
