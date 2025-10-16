@@ -236,15 +236,25 @@ function PersonalInfo() {
   // 🆕 Update (with FormData for optional images)
   // *********************************************
   const handleUpdate = () => {
-    // ✅ Allow update if there are changes OR if this is a forced/confirmation update
-    if (!changed && !forceUpdate && !showWarning) return;
+  // ✅ Allow update if there are changes OR if this is a forced/confirmation update
+  if (!changed && !forceUpdate && !showWarning) return;
 
-    const requiredFields = [
-      "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
-      "educationalLevel", "gender", "nationalId", "nationality", "postalCode",
-      "streetAddress", "streetNumber", "area", "city", "apartment",
-      "emergencyContactName", "emergencyContactNumber",
-    ];
+  // 🧩 Require both ID images if section visible
+  if (requireIdImages && (!idFrontImage || !idBackImage)) {
+    setSnackbar({
+      open: true,
+      message: "Please upload both front and back sides of your National ID before submitting.",
+      severity: "error",
+    });
+    return;
+  }
+
+  const requiredFields = [
+    "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
+    "educationalLevel", "gender", "nationalId", "nationality", "postalCode",
+    "streetAddress", "streetNumber", "area", "city", "apartment",
+    "emergencyContactName", "emergencyContactNumber",
+  ];
 
     // Skip required-field validation when confirming outdated info (no changes)
     const missing =
@@ -719,13 +729,17 @@ function PersonalInfo() {
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} textAlign="right">
             <Button
-              variant="contained"
-              color="success"
-              disabled={(!changed && !forceUpdate && !showWarning) || loading}
-              onClick={handleUpdate}
-            >
-              {loading ? <CircularProgress size={24} /> : "Update Information"}
-            </Button>
+  variant="contained"
+  color="success"
+  disabled={
+    ((!changed && !forceUpdate && !showWarning) || loading) ||
+    (requireIdImages && (!idFrontImage || !idBackImage))
+  }
+  onClick={handleUpdate}
+>
+  {loading ? <CircularProgress size={24} /> : "Update Information"}
+</Button>
+
           </Grid>
         </Grid>
       </Paper>
