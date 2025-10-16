@@ -40,34 +40,32 @@ const companyLogos = {
 
 const NATIONALITY_OPTIONS = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
-  "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain",
-  "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
-  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso",
-  "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic",
-  "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica",
-  "Croatia", "Cuba", "Cyprus", "Czech Republic", "Democratic Republic of the Congo",
-  "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador",
-  "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland",
-  "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada",
-  "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary",
-  "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
-  "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos",
-  "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania",
-  "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
-  "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova",
-  "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)", "Namibia",
-  "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
-  "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine",
-  "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
-  "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
-  "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
-  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
-  "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
-  "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
-  "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
-  "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
-  "United Kingdom", "United States of America", "Uruguay", "Uzbekistan", "Vanuatu",
-  "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe",
+  "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+  "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+  "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros",
+  "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+  "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+  "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+  "Fiji", "Finland", "France",
+  "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+  "Haiti", "Honduras", "Hungary",
+  "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Jamaica", "Japan", "Jordan",
+  "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
+  "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+  "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico",
+  "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)",
+  "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
+  "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+  "Qatar", "Romania", "Russia", "Rwanda",
+  "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
+  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands",
+  "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden",
+  "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
+  "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
+  "United States of America", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam",
+  "Yemen", "Zambia", "Zimbabwe",
 ];
 
 const withCurrentOption = (options, current) => {
@@ -80,7 +78,10 @@ function PersonalInfo() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [showWarning, setShowWarning] = useState(localStorage.getItem("needsUpdate") === "true");
+  const [showWarning, setShowWarning] = useState(
+    localStorage.getItem("needsUpdate") === "true"
+  );
+
   const forceUpdate = location.state?.forceUpdate || false;
   const originalData = useRef(null);
   const [userData, setUserData] = useState(null);
@@ -114,7 +115,9 @@ function PersonalInfo() {
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
 
-  // 🆕 Added: ID upload states
+  // **********************
+  // 🆕 NEW: ID image state
+  // **********************
   const [idFrontImage, setIdFrontImage] = useState(null);
   const [idBackImage, setIdBackImage] = useState(null);
   const [requireIdImages, setRequireIdImages] = useState(false);
@@ -124,6 +127,7 @@ function PersonalInfo() {
   const urlAddressLookup =
     "https://prod-24.westeurope.logic.azure.com:443/workflows/f0e93ec5ec1343a6bd52326577282aca/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=0c8NQEn0LBb8i5jEBUgpns8y8hSFZqOsG19f_Ktwzkw";
 
+  // Fetch user info
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(urlUserInfo, {
@@ -133,11 +137,18 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
+        let ecName = data["Emergency Contact Name"] ?? "";
+        let ecNumber = data["Emergency Contact Number"] ?? "";
+        const ecNameStr = String(ecName ?? "");
+        if (!ecNumber && /^\d{5,}$/.test(ecNameStr)) {
+          ecNumber = ecNameStr;
+          ecName = "";
+        }
         const normalized = {
           fullName: data.FullName || "",
           employeeId: data.EmployeeId?.toString() || "",
           phone: data.Phone?.toString() || "",
-          personalEmail: data.PersonalEmail || "",
+          personalEmail: data.PersonalEmail || data["Personal Email"] || "",
           maritalStatus: data["Marital Status"] || "",
           educationalLevel: data.EducationalLevel || "",
           gender: data.Gender || "",
@@ -151,18 +162,19 @@ function PersonalInfo() {
           apartment: data["Apartment "] || "",
           area: data.Area || "",
           city: data.City || "",
-          emergencyContactName: data["Emergency Contact Name"] || "",
-          emergencyContactNumber: data["Emergency Contact Number"] || "",
+          emergencyContactName: String(ecName || ""),
+          emergencyContactNumber: String(ecNumber || ""),
         };
         setUserData({ companyName: normalized.companyName });
         setFormData(normalized);
         originalData.current = normalized;
         setChanged(false);
       })
-      .catch((err) => console.error(err))
+      .catch((err) => console.error("Error fetching info:", err))
       .finally(() => setLoading(false));
   };
 
+  // Address lookup
   const fetchAddressesByPostalCode = async (postalCode) => {
     if (postalCode.length < 4) return;
     setAddressLoading(true);
@@ -188,6 +200,7 @@ function PersonalInfo() {
     }
   };
 
+  // Watch postal code
   useEffect(() => {
     if (formData.postalCode && formData.postalCode.length === 4) {
       fetchAddressesByPostalCode(formData.postalCode);
@@ -208,7 +221,9 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // 🆕 Detect ID change
+  // ***************************************
+  // 🆕 Detect if national ID fields changed
+  // ***************************************
   useEffect(() => {
     if (!originalData.current) return;
     const nationalIdChanged =
@@ -217,30 +232,21 @@ function PersonalInfo() {
     setRequireIdImages(nationalIdChanged);
   }, [formData.nationalId, formData.nationalIdExpiration]);
 
-  // 🆕 Modified handleUpdate
+  // *********************************************
+  // 🆕 Update (with FormData for optional images)
+  // *********************************************
   const handleUpdate = () => {
+    // ✅ Allow update if there are changes OR if this is a forced/confirmation update
     if (!changed && !forceUpdate && !showWarning) return;
 
     const requiredFields = [
-      "fullName",
-      "employeeId",
-      "phone",
-      "personalEmail",
-      "maritalStatus",
-      "educationalLevel",
-      "gender",
-      "nationalId",
-      "nationality",
-      "postalCode",
-      "streetAddress",
-      "streetNumber",
-      "area",
-      "city",
-      "apartment",
-      "emergencyContactName",
-      "emergencyContactNumber",
+      "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
+      "educationalLevel", "gender", "nationalId", "nationality", "postalCode",
+      "streetAddress", "streetNumber", "area", "city", "apartment",
+      "emergencyContactName", "emergencyContactNumber",
     ];
 
+    // Skip required-field validation when confirming outdated info (no changes)
     const missing =
       changed || (!changed && !forceUpdate && !showWarning)
         ? requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "")
@@ -260,18 +266,23 @@ function PersonalInfo() {
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
     setLoading(true);
 
+    // Build multipart FormData (so we can include images if required)
     const formPayload = new FormData();
     formPayload.append("oid", oid);
     formPayload.append("update", "true");
     Object.entries(formData).forEach(([k, v]) => formPayload.append(k, v ?? ""));
     formPayload.append("confirmationOnly", (!changed && (forceUpdate || showWarning)).toString());
 
+    // Attach images if required
     if (requireIdImages) {
       if (idFrontImage) formPayload.append("idFrontImage", idFrontImage);
       if (idBackImage) formPayload.append("idBackImage", idBackImage);
     }
 
-    fetch(urlUserInfo, { method: "POST", body: formPayload })
+    fetch(urlUserInfo, {
+      method: "POST",
+      body: formPayload, // no manual Content-Type — browser sets boundary
+    })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         try {
@@ -291,16 +302,28 @@ function PersonalInfo() {
         });
         originalData.current = formData;
         setChanged(false);
+
+        // ✅ Hide warning everywhere after success
         setShowWarning(false);
         localStorage.setItem("needsUpdate", "false");
         navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
       })
       .catch((err) => {
-        console.error(err);
-        setSnackbar({ open: true, message: "Failed to update information.", severity: "error" });
+        console.error("Update error:", err);
+        setSnackbar({
+          open: true,
+          message: "Failed to update information.",
+          severity: "error",
+        });
       })
       .finally(() => setLoading(false));
   };
+
+  useEffect(() => {
+    if (localStorage.getItem("needsUpdate") === "false") {
+      setShowWarning(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -320,7 +343,6 @@ function PersonalInfo() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* Header */}
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {userData?.companyName && companyLogos[userData.companyName] && (
@@ -348,234 +370,365 @@ function PersonalInfo() {
         Employee ID: {formData.employeeId}
       </Typography>
 
-      {/* 🪪 Identification */}
-      <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-          🪪 Identification Details
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="National ID Number"
-              name="nationalId"
-              value={formData.nationalId}
-              onChange={handleChange}
-              error={errorFields.includes("nationalId")}
-              helperText={errorFields.includes("nationalId") ? "Required" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              type="date"
-              label="National ID Expiration Date"
-              name="nationalIdExpiration"
-              value={formData.nationalIdExpiration || ""}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Nationality"
-              name="nationality"
-              value={formData.nationality || ""}
-              onChange={handleChange}
-              error={errorFields.includes("nationality")}
-              helperText={errorFields.includes("nationality") ? "Required" : ""}
-            >
-              {withCurrentOption(NATIONALITY_OPTIONS, formData.nationality).map((n) => (
-                <MenuItem key={n} value={n}>
-                  {n}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-        </Grid>
-      </Paper>
+      {showWarning && (
+        <Alert
+          severity="warning"
+          sx={{
+            mt: 2,
+            mb: 2,
+            maxWidth: "700px",
+            borderRadius: "10px",
+            backgroundColor: "#fffbe6",
+            border: "1px solid #ffe58f",
+          }}
+        >
+          Our records show you haven’t updated your personal information in over 2 years.&nbsp;
+          Please review your details and press <strong>“Update Information”</strong> to confirm.
+        </Alert>
+      )}
 
-      {/* 🆕 ID Image Upload */}
-      {requireIdImages && (
-        <Paper elevation={1} sx={{ mt: 2, p: 3, backgroundColor: "#fff8e1", borderRadius: 2 }}>
-          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-            📸 Please upload your updated National ID images
+      <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
+        {/* 📋 Personal Information */}
+        <Paper
+          elevation={1}
+          sx={{
+            p: 3,
+            mb: 4,
+            backgroundColor: "#f9fafb",
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            📋 Personal Information
           </Typography>
+
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Button variant="outlined" component="label" fullWidth>
-                Upload Front Side
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) => setIdFrontImage(e.target.files[0])}
-                />
-              </Button>
-              {idFrontImage && (
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  {idFrontImage.name}
-                </Typography>
-              )}
+            {/* Read-only fields */}
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Full Name"
+                name="fullName"
+                value={formData.fullName}
+                disabled
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Employee ID"
+                name="employeeId"
+                value={formData.employeeId}
+                disabled
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Phone"
+                name="phone"
+                value={formData.phone}
+                disabled
+              />
             </Grid>
 
-            <Grid item xs={12} md={6}>
-              <Button variant="outlined" component="label" fullWidth>
-                Upload Back Side
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) => setIdBackImage(e.target.files[0])}
-                />
-              </Button>
-              {idBackImage && (
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  {idBackImage.name}
-                </Typography>
-              )}
+            {/* Editable fields */}
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="Personal Email"
+                name="personalEmail"
+                value={formData.personalEmail}
+                onChange={handleChange}
+                error={errorFields.includes("personalEmail")}
+                helperText={errorFields.includes("personalEmail") ? "Required" : ""}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Marital Status"
+                name="maritalStatus"
+                value={formData.maritalStatus || ""}
+                onChange={handleChange}
+                error={errorFields.includes("maritalStatus")}
+                helperText={errorFields.includes("maritalStatus") ? "Required" : ""}
+              >
+                <MenuItem value="Married">Married</MenuItem>
+                <MenuItem value="Not married">Not married</MenuItem>
+                <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
+                <MenuItem value="Divorced">Divorced</MenuItem>
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Educational Level"
+                name="educationalLevel"
+                value={formData.educationalLevel || ""}
+                onChange={handleChange}
+                error={errorFields.includes("educationalLevel")}
+                helperText={errorFields.includes("educationalLevel") ? "Required" : ""}
+              >
+                <MenuItem value="High School">High School</MenuItem>
+                <MenuItem value="Diploma">Diploma</MenuItem>
+                <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
+                <MenuItem value="Master's Degree">Master's Degree</MenuItem>
+                <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Gender"
+                name="gender"
+                value={formData.gender || ""}
+                onChange={handleChange}
+                error={errorFields.includes("gender")}
+                helperText={errorFields.includes("gender") ? "Required" : ""}
+              >
+                <MenuItem value="Male">Male</MenuItem>
+                <MenuItem value="Female">Female</MenuItem>
+                <MenuItem value="Other">Other</MenuItem>
+              </TextField>
             </Grid>
           </Grid>
         </Paper>
-      )}
 
-      {/* 🏠 Residential Address */}
-      <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-          🏠 Residential Address
-        </Typography>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={2.4}>
-            <TextField
-              fullWidth
-              label="Postal Code"
-              name="postalCode"
-              value={formData.postalCode}
-              onChange={handleChange}
-              error={errorFields.includes("postalCode")}
-              helperText={errorFields.includes("postalCode") ? "Required" : ""}
-            />
+        {/* 🪪 Identification */}
+        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            🪪 Identification Details
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                label="National ID Number"
+                name="nationalId"
+                value={formData.nationalId}
+                onChange={handleChange}
+                error={errorFields.includes("nationalId")}
+                helperText={errorFields.includes("nationalId") ? "Required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type="date"
+                label="National ID Expiration Date"
+                name="nationalIdExpiration"
+                value={formData.nationalIdExpiration || ""}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Nationality"
+                name="nationality"
+                value={formData.nationality || ""}
+                onChange={handleChange}
+                error={errorFields.includes("nationality")}
+                helperText={errorFields.includes("nationality") ? "Required" : ""}
+              >
+                {withCurrentOption(NATIONALITY_OPTIONS, formData.nationality).map((n) => (
+                  <MenuItem key={n} value={n}>
+                    {n}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={2.4}>
-            <TextField
-              select
-              fullWidth
-              label="Street Address"
-              name="streetAddress"
-              value={formData.streetAddress || ""}
-              onChange={handleChange}
-              SelectProps={{ displayEmpty: true }}
-              InputProps={{
-                endAdornment: addressLoading ? (
-                  <InputAdornment position="end">
-                    <CircularProgress size={20} />
-                  </InputAdornment>
-                ) : null,
-              }}
-              error={errorFields.includes("streetAddress")}
-              helperText={errorFields.includes("streetAddress") ? "Required" : ""}
+        </Paper>
+
+        {/* 🆕 Conditional ID Image Uploads */}
+        {requireIdImages && (
+          <Paper elevation={1} sx={{ mt: 2, p: 3, backgroundColor: "#fff8e1", borderRadius: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+              📸 Please upload your updated National ID images
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Button variant="outlined" component="label" fullWidth>
+                  Upload Front Side
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => setIdFrontImage(e.target.files[0])}
+                  />
+                </Button>
+                {idFrontImage && (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    {idFrontImage.name}
+                  </Typography>
+                )}
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Button variant="outlined" component="label" fullWidth>
+                  Upload Back Side
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => setIdBackImage(e.target.files[0])}
+                  />
+                </Button>
+                {idBackImage && (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    {idBackImage.name}
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
+
+        {/* 🏠 Residential Address */}
+        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            🏠 Residential Address
+          </Typography>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={2.4}>
+              <TextField
+                fullWidth
+                label="Postal Code"
+                name="postalCode"
+                value={formData.postalCode}
+                onChange={handleChange}
+                error={errorFields.includes("postalCode")}
+                helperText={errorFields.includes("postalCode") ? "Required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={2.4}>
+              <TextField
+                select
+                fullWidth
+                label="Street Address"
+                name="streetAddress"
+                value={formData.streetAddress || ""}
+                onChange={handleChange}
+                SelectProps={{ displayEmpty: true }}
+                InputProps={{
+                  endAdornment: addressLoading ? (
+                    <InputAdornment position="end">
+                      <CircularProgress size={20} />
+                    </InputAdornment>
+                  ) : null,
+                }}
+                error={errorFields.includes("streetAddress")}
+                helperText={errorFields.includes("streetAddress") ? "Required" : ""}
+              >
+                {withCurrentOption(streetOptions, formData.streetAddress).map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={2.4}>
+              <TextField
+                fullWidth
+                label="Street Number"
+                name="streetNumber"
+                value={formData.streetNumber}
+                onChange={handleChange}
+                error={errorFields.includes("streetNumber")}
+                helperText={errorFields.includes("streetNumber") ? "Required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={2.4}>
+              <TextField
+                fullWidth
+                label="Area"
+                name="area"
+                value={formData.area}
+                InputProps={{ readOnly: true }}
+                error={errorFields.includes("area")}
+                helperText={errorFields.includes("area") ? "Required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={2.4}>
+              <TextField
+                fullWidth
+                label="City"
+                name="city"
+                value={formData.city}
+                InputProps={{ readOnly: true }}
+                error={errorFields.includes("city")}
+                helperText={errorFields.includes("city") ? "Required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={2.4}>
+              <TextField
+                fullWidth
+                label="Apartment"
+                name="apartment"
+                value={formData.apartment}
+                onChange={handleChange}
+                error={errorFields.includes("apartment")}
+                helperText={errorFields.includes("apartment") ? "Required" : ""}
+              />
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* ☎️ Emergency Contact */}
+        <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            ☎️ Emergency Contact
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Emergency Contact Name"
+                name="emergencyContactName"
+                value={formData.emergencyContactName}
+                onChange={handleChange}
+                error={errorFields.includes("emergencyContactName")}
+                helperText={errorFields.includes("emergencyContactName") ? "Required" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Emergency Contact Number"
+                name="emergencyContactNumber"
+                value={formData.emergencyContactNumber}
+                onChange={handleChange}
+                error={errorFields.includes("emergencyContactNumber")}
+                helperText={errorFields.includes("emergencyContactNumber") ? "Required" : ""}
+              />
+            </Grid>
+          </Grid>
+        </Paper>
+
+        <Grid container spacing={3} mt={3} alignItems="center">
+          <Grid item xs={12} textAlign="right">
+            <Button
+              variant="contained"
+              color="success"
+              disabled={(!changed && !forceUpdate && !showWarning) || loading}
+              onClick={handleUpdate}
             >
-              {withCurrentOption(streetOptions, formData.streetAddress).map((s) => (
-                <MenuItem key={s} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={2.4}>
-            <TextField
-              fullWidth
-              label="Street Number"
-              name="streetNumber"
-              value={formData.streetNumber}
-              onChange={handleChange}
-              error={errorFields.includes("streetNumber")}
-              helperText={errorFields.includes("streetNumber") ? "Required" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} md={2.4}>
-            <TextField
-              fullWidth
-              label="Area"
-              name="area"
-              value={formData.area}
-              InputProps={{ readOnly: true }}
-              error={errorFields.includes("area")}
-              helperText={errorFields.includes("area") ? "Required" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} md={2.4}>
-            <TextField
-              fullWidth
-              label="City"
-              name="city"
-              value={formData.city}
-              InputProps={{ readOnly: true }}
-              error={errorFields.includes("city")}
-              helperText={errorFields.includes("city") ? "Required" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} md={2.4}>
-            <TextField
-              fullWidth
-              label="Apartment"
-              name="apartment"
-              value={formData.apartment}
-              onChange={handleChange}
-              error={errorFields.includes("apartment")}
-              helperText={errorFields.includes("apartment") ? "Required" : ""}
-            />
+              {loading ? <CircularProgress size={24} /> : "Update Information"}
+            </Button>
           </Grid>
         </Grid>
       </Paper>
-
-      {/* ☎️ Emergency Contact */}
-      <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-          ☎️ Emergency Contact
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Emergency Contact Name"
-              name="emergencyContactName"
-              value={formData.emergencyContactName}
-              onChange={handleChange}
-              error={errorFields.includes("emergencyContactName")}
-              helperText={errorFields.includes("emergencyContactName") ? "Required" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Emergency Contact Number"
-              name="emergencyContactNumber"
-              value={formData.emergencyContactNumber}
-              onChange={handleChange}
-              error={errorFields.includes("emergencyContactNumber")}
-              helperText={errorFields.includes("emergencyContactNumber") ? "Required" : ""}
-            />
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Submit button */}
-      <Grid container spacing={3} mt={3} alignItems="center">
-        <Grid item xs={12} textAlign="right">
-          <Button
-            variant="contained"
-            color="success"
-            disabled={(!changed && !forceUpdate && !showWarning) || loading}
-            onClick={handleUpdate}
-          >
-            {loading ? <CircularProgress size={24} /> : "Update Information"}
-          </Button>
-        </Grid>
-      </Grid>
 
       <Snackbar
         open={snackbar.open}
