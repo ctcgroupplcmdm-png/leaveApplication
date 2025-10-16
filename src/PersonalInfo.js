@@ -26,6 +26,9 @@ import apex from "./assets/logos/apex.png";
 import nks from "./assets/logos/nks.png";
 import limni from "./assets/logos/limni.png";
 
+
+
+
 const companyLogos = {
   "Argosy Trading Company Ltd": argosy,
   "Cyprus Trading Corporation Plc": ctc,
@@ -79,10 +82,10 @@ function PersonalInfo() {
   const location = useLocation();
 
   const [showWarning, setShowWarning] = useState(
-    localStorage.getItem("needsUpdate") === "true"
-  );
+  localStorage.getItem("needsUpdate") === "true"
+);
 
-  const forceUpdate = location.state?.forceUpdate || false;
+const forceUpdate = location.state?.forceUpdate || false;
   const originalData = useRef(null);
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
@@ -114,13 +117,6 @@ function PersonalInfo() {
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
-
-  // **********************
-  // 🆕 NEW: ID image state
-  // **********************
-  const [idFrontImage, setIdFrontImage] = useState(null);
-  const [idBackImage, setIdBackImage] = useState(null);
-  const [requireIdImages, setRequireIdImages] = useState(false);
 
   const urlUserInfo =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
@@ -221,33 +217,11 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // ***************************************
-  // 🆕 Detect if national ID fields changed
-  // ***************************************
-  useEffect(() => {
-    if (!originalData.current) return;
-    const nationalIdChanged =
-      formData.nationalId !== originalData.current.nationalId ||
-      formData.nationalIdExpiration !== originalData.current.nationalIdExpiration;
-    setRequireIdImages(nationalIdChanged);
-  }, [formData.nationalId, formData.nationalIdExpiration]);
-
-  // *********************************************
-  // 🆕 Update (with FormData for optional images)
-  // *********************************************
-  const handleUpdate = () => {
+  // Update
+  // Update
+const handleUpdate = () => {
   // ✅ Allow update if there are changes OR if this is a forced/confirmation update
   if (!changed && !forceUpdate && !showWarning) return;
-
-  // 🧩 Require both ID images if section visible
-  if (requireIdImages && (!idFrontImage || !idBackImage)) {
-    setSnackbar({
-      open: true,
-      message: "Please upload both front and back sides of your National ID before submitting.",
-      severity: "error",
-    });
-    return;
-  }
 
   const requiredFields = [
     "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
@@ -256,84 +230,82 @@ function PersonalInfo() {
     "emergencyContactName", "emergencyContactNumber",
   ];
 
-    // Skip required-field validation when confirming outdated info (no changes)
-    const missing =
-      changed || (!changed && !forceUpdate && !showWarning)
-        ? requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "")
-        : [];
+  // Skip required-field validation when confirming outdated info (no changes)
+  const missing =
+    changed || (!changed && !forceUpdate && !showWarning)
+      ? requiredFields.filter((f) => !formData[f] || String(formData[f]).trim() === "")
+      : [];
 
-    if (missing.length > 0) {
-      setErrorFields(missing);
-      setSnackbar({
-        open: true,
-        message: "Please fill in all required fields before updating.",
-        severity: "error",
-      });
-      return;
-    }
+  if (missing.length > 0) {
+    setErrorFields(missing);
+    setSnackbar({
+      open: true,
+      message: "Please fill in all required fields before updating.",
+      severity: "error",
+    });
+    return;
+  }
 
-    const account = accounts[0];
-    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-    setLoading(true);
+  const account = accounts[0];
+  const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+  setLoading(true);
 
-    // Build multipart FormData (so we can include images if required)
-    const formPayload = new FormData();
-    formPayload.append("oid", oid);
-    formPayload.append("update", "true");
-    Object.entries(formData).forEach(([k, v]) => formPayload.append(k, v ?? ""));
-    formPayload.append("confirmationOnly", (!changed && (forceUpdate || showWarning)).toString());
-
-    // Attach images if required
-    if (requireIdImages) {
-      if (idFrontImage) formPayload.append("idFrontImage", idFrontImage);
-      if (idBackImage) formPayload.append("idBackImage", idBackImage);
-    }
-
-    fetch(urlUserInfo, {
-      method: "POST",
-      body: formPayload, // no manual Content-Type — browser sets boundary
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        try {
-          return await res.json();
-        } catch {
-          return null;
-        }
-      })
-      .then(() => {
-        setSnackbar({
-          open: true,
-          message:
-            !changed && (forceUpdate || showWarning)
-              ? "Information confirmed successfully."
-              : "Information updated successfully.",
-          severity: "success",
-        });
-        originalData.current = formData;
-        setChanged(false);
-
-        // ✅ Hide warning everywhere after success
-        setShowWarning(false);
-        localStorage.setItem("needsUpdate", "false");
-        navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
-      })
-      .catch((err) => {
-        console.error("Update error:", err);
-        setSnackbar({
-          open: true,
-          message: "Failed to update information.",
-          severity: "error",
-        });
-      })
-      .finally(() => setLoading(false));
+  const payload = {
+    oid,
+    update: true,
+    ...formData,
+    confirmationOnly: !changed && (forceUpdate || showWarning), // tells Logic App this was just confirmation
   };
 
-  useEffect(() => {
-    if (localStorage.getItem("needsUpdate") === "false") {
+  fetch(urlUserInfo, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+    .then(async (res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Logic App may not return JSON
+      try {
+        return await res.json();
+      } catch {
+        return null;
+      }
+    })
+    .then(() => {
+      setSnackbar({
+        open: true,
+        message:
+          !changed && (forceUpdate || showWarning)
+            ? "Information confirmed successfully."
+            : "Information updated successfully.",
+        severity: "success",
+      });
+      originalData.current = formData;
+      setChanged(false);
+
+      // ✅ Hide warning everywhere after success
       setShowWarning(false);
-    }
-  }, []);
+      localStorage.setItem("needsUpdate", "false");
+      navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
+    })
+    .catch((err) => {
+      console.error("Update error:", err);
+      setSnackbar({
+        open: true,
+        message: "Failed to update information.",
+        severity: "error",
+      });
+    })
+    .finally(() => setLoading(false));
+};
+
+useEffect(() => {
+  if (localStorage.getItem("needsUpdate") === "false") {
+    setShowWarning(false);
+  }
+}, []);
+
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -381,135 +353,139 @@ function PersonalInfo() {
       </Typography>
 
       {showWarning && (
-        <Alert
-          severity="warning"
-          sx={{
-            mt: 2,
-            mb: 2,
-            maxWidth: "700px",
-            borderRadius: "10px",
-            backgroundColor: "#fffbe6",
-            border: "1px solid #ffe58f",
-          }}
-        >
-          Our records show you haven’t updated your personal information in over 2 years.&nbsp;
-          Please review your details and press <strong>“Update Information”</strong> to confirm.
-        </Alert>
-      )}
+  <Alert
+    severity="warning"
+    sx={{
+      mt: 2,
+      mb: 2,
+      maxWidth: "700px",
+      borderRadius: "10px",
+      backgroundColor: "#fffbe6",
+      border: "1px solid #ffe58f",
+    }}
+  >
+    Our records show you haven’t updated your personal information in over 2 years.  
+    Please review your details and press <strong>“Update Information”</strong> to confirm.
+  </Alert>
+)}
+
+
 
       <Paper elevation={3} sx={{ mt: 4, p: 4, backgroundColor: "#fff", borderRadius: 2 }}>
         {/* 📋 Personal Information */}
         <Paper
-          elevation={1}
-          sx={{
-            p: 3,
-            mb: 4,
-            backgroundColor: "#f9fafb",
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-            📋 Personal Information
-          </Typography>
+  elevation={1}
+  sx={{
+    p: 3,
+    mb: 4,
+    backgroundColor: "#f9fafb",
+    borderRadius: 2,
+  }}
+>
+  <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+    📋 Personal Information
+  </Typography>
 
-          <Grid container spacing={3}>
-            {/* Read-only fields */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Full Name"
-                name="fullName"
-                value={formData.fullName}
-                disabled
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Employee ID"
-                name="employeeId"
-                value={formData.employeeId}
-                disabled
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Phone"
-                name="phone"
-                value={formData.phone}
-                disabled
-              />
-            </Grid>
+  <Grid container spacing={3}>
+    {/* Read-only fields */}
+    <Grid item xs={12} md={4}>
+      <TextField
+        fullWidth
+        label="Full Name"
+        name="fullName"
+        value={formData.fullName}
+        disabled
+      />
+    </Grid>
+    <Grid item xs={12} md={4}>
+      <TextField
+        fullWidth
+        label="Employee ID"
+        name="employeeId"
+        value={formData.employeeId}
+        disabled
+      />
+    </Grid>
+    <Grid item xs={12} md={4}>
+      <TextField
+        fullWidth
+        label="Phone"
+        name="phone"
+        value={formData.phone}
+        disabled
+      />
+    </Grid>
 
-            {/* Editable fields */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Personal Email"
-                name="personalEmail"
-                value={formData.personalEmail}
-                onChange={handleChange}
-                error={errorFields.includes("personalEmail")}
-                helperText={errorFields.includes("personalEmail") ? "Required" : ""}
-              />
-            </Grid>
+    {/* Editable fields (still inside the same card) */}
+    <Grid item xs={12} md={4}>
+      <TextField
+        fullWidth
+        label="Personal Email"
+        name="personalEmail"
+        value={formData.personalEmail}
+        onChange={handleChange}
+        error={errorFields.includes("personalEmail")}
+        helperText={errorFields.includes("personalEmail") ? "Required" : ""}
+      />
+    </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                fullWidth
-                label="Marital Status"
-                name="maritalStatus"
-                value={formData.maritalStatus || ""}
-                onChange={handleChange}
-                error={errorFields.includes("maritalStatus")}
-                helperText={errorFields.includes("maritalStatus") ? "Required" : ""}
-              >
-                <MenuItem value="Married">Married</MenuItem>
-                <MenuItem value="Not married">Not married</MenuItem>
-                <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
-                <MenuItem value="Divorced">Divorced</MenuItem>
-              </TextField>
-            </Grid>
+    <Grid item xs={12} md={4}>
+      <TextField
+        select
+        fullWidth
+        label="Marital Status"
+        name="maritalStatus"
+        value={formData.maritalStatus || ""}
+        onChange={handleChange}
+        error={errorFields.includes("maritalStatus")}
+        helperText={errorFields.includes("maritalStatus") ? "Required" : ""}
+      >
+        <MenuItem value="Married">Married</MenuItem>
+        <MenuItem value="Not married">Not married</MenuItem>
+        <MenuItem value="Widow/Widower">Widow/Widower</MenuItem>
+        <MenuItem value="Divorced">Divorced</MenuItem>
+      </TextField>
+    </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                fullWidth
-                label="Educational Level"
-                name="educationalLevel"
-                value={formData.educationalLevel || ""}
-                onChange={handleChange}
-                error={errorFields.includes("educationalLevel")}
-                helperText={errorFields.includes("educationalLevel") ? "Required" : ""}
-              >
-                <MenuItem value="High School">High School</MenuItem>
-                <MenuItem value="Diploma">Diploma</MenuItem>
-                <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
-                <MenuItem value="Master's Degree">Master's Degree</MenuItem>
-                <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
-              </TextField>
-            </Grid>
+    <Grid item xs={12} md={4}>
+  <TextField
+    select
+    fullWidth
+    label="Educational Level"
+    name="educationalLevel"
+    value={formData.educationalLevel || ""}
+    onChange={handleChange}
+    error={errorFields.includes("educationalLevel")}
+    helperText={errorFields.includes("educationalLevel") ? "Required" : ""}
+  >
+    <MenuItem value="High School">High School</MenuItem>
+    <MenuItem value="Diploma">Diploma</MenuItem>
+    <MenuItem value="Bachelor's Degree">Bachelor's Degree</MenuItem>
+    <MenuItem value="Master's Degree">Master's Degree</MenuItem>
+    <MenuItem value="Doctoral Degree">Doctoral Degree</MenuItem>
+  </TextField>
+</Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                select
-                fullWidth
-                label="Gender"
-                name="gender"
-                value={formData.gender || ""}
-                onChange={handleChange}
-                error={errorFields.includes("gender")}
-                helperText={errorFields.includes("gender") ? "Required" : ""}
-              >
-                <MenuItem value="Male">Male</MenuItem>
-                <MenuItem value="Female">Female</MenuItem>
-                <MenuItem value="Other">Other</MenuItem>
-              </TextField>
-            </Grid>
-          </Grid>
-        </Paper>
+
+    <Grid item xs={12} md={4}>
+      <TextField
+        select
+        fullWidth
+        label="Gender"
+        name="gender"
+        value={formData.gender || ""}
+        onChange={handleChange}
+        error={errorFields.includes("gender")}
+        helperText={errorFields.includes("gender") ? "Required" : ""}
+      >
+        <MenuItem value="Male">Male</MenuItem>
+        <MenuItem value="Female">Female</MenuItem>
+        <MenuItem value="Other">Other</MenuItem>
+      </TextField>
+    </Grid>
+  </Grid>
+</Paper>
+
 
         {/* 🪪 Identification */}
         <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
@@ -559,50 +535,6 @@ function PersonalInfo() {
             </Grid>
           </Grid>
         </Paper>
-
-        {/* 🆕 Conditional ID Image Uploads */}
-        {requireIdImages && (
-          <Paper elevation={1} sx={{ mt: 2, p: 3, backgroundColor: "#fff8e1", borderRadius: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              📸 Please upload your updated National ID images
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Button variant="outlined" component="label" fullWidth>
-                  Upload Front Side
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={(e) => setIdFrontImage(e.target.files[0])}
-                  />
-                </Button>
-                {idFrontImage && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    {idFrontImage.name}
-                  </Typography>
-                )}
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Button variant="outlined" component="label" fullWidth>
-                  Upload Back Side
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={(e) => setIdBackImage(e.target.files[0])}
-                  />
-                </Button>
-                {idBackImage && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    {idBackImage.name}
-                  </Typography>
-                )}
-              </Grid>
-            </Grid>
-          </Paper>
-        )}
 
         {/* 🏠 Residential Address */}
         <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
@@ -681,6 +613,9 @@ function PersonalInfo() {
                 helperText={errorFields.includes("city") ? "Required" : ""}
               />
             </Grid>
+          
+
+          
             <Grid item xs={12} md={2.4}>
               <TextField
                 fullWidth
@@ -728,18 +663,11 @@ function PersonalInfo() {
 
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} textAlign="right">
-            <Button
-  variant="contained"
-  color="success"
-  disabled={
-    ((!changed && !forceUpdate && !showWarning) || loading) ||
-    (requireIdImages && (!idFrontImage || !idBackImage))
-  }
-  onClick={handleUpdate}
->
-  {loading ? <CircularProgress size={24} /> : "Update Information"}
-</Button>
+            <Button variant="contained" color="success" disabled={(!changed && !forceUpdate && !showWarning) || loading}
 
+ onClick={handleUpdate}>
+              {loading ? <CircularProgress size={24} /> : "Update Information"}
+            </Button>
           </Grid>
         </Grid>
       </Paper>
