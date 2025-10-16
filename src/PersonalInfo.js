@@ -40,32 +40,34 @@ const companyLogos = {
 
 const NATIONALITY_OPTIONS = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
-  "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
-  "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
-  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
-  "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros",
-  "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
-  "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
-  "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
-  "Fiji", "Finland", "France",
-  "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
-  "Haiti", "Honduras", "Hungary",
-  "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
-  "Jamaica", "Japan", "Jordan",
-  "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
-  "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
-  "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico",
-  "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)",
-  "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
-  "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
-  "Qatar", "Romania", "Russia", "Rwanda",
-  "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
-  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands",
-  "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden",
-  "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
-  "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
-  "United States of America", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam",
-  "Yemen", "Zambia", "Zimbabwe",
+  "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain",
+  "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso",
+  "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic",
+  "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica",
+  "Croatia", "Cuba", "Cyprus", "Czech Republic", "Democratic Republic of the Congo",
+  "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador",
+  "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland",
+  "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada",
+  "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary",
+  "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
+  "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos",
+  "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania",
+  "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
+  "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova",
+  "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)", "Namibia",
+  "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
+  "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine",
+  "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+  "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
+  "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
+  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
+  "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
+  "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+  "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
+  "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
+  "United Kingdom", "United States of America", "Uruguay", "Uzbekistan", "Vanuatu",
+  "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe",
 ];
 
 const withCurrentOption = (options, current) => {
@@ -112,7 +114,7 @@ function PersonalInfo() {
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
 
-  // 🆕 Added: ID upload state
+  // 🆕 Added image upload states
   const [idFrontImage, setIdFrontImage] = useState(null);
   const [idBackImage, setIdBackImage] = useState(null);
   const [requireIdImages, setRequireIdImages] = useState(false);
@@ -122,6 +124,7 @@ function PersonalInfo() {
   const urlAddressLookup =
     "https://prod-24.westeurope.logic.azure.com:443/workflows/f0e93ec5ec1343a6bd52326577282aca/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=0c8NQEn0LBb8i5jEBUgpns8y8hSFZqOsG19f_Ktwzkw";
 
+  // Fetch user info
   const fetchUserInfo = (oid) => {
     setLoading(true);
     fetch(urlUserInfo, {
@@ -131,18 +134,11 @@ function PersonalInfo() {
     })
       .then((res) => res.json())
       .then((data) => {
-        let ecName = data["Emergency Contact Name"] ?? "";
-        let ecNumber = data["Emergency Contact Number"] ?? "";
-        const ecNameStr = String(ecName ?? "");
-        if (!ecNumber && /^\d{5,}$/.test(ecNameStr)) {
-          ecNumber = ecNameStr;
-          ecName = "";
-        }
         const normalized = {
           fullName: data.FullName || "",
           employeeId: data.EmployeeId?.toString() || "",
           phone: data.Phone?.toString() || "",
-          personalEmail: data.PersonalEmail || data["Personal Email"] || "",
+          personalEmail: data.PersonalEmail || "",
           maritalStatus: data["Marital Status"] || "",
           educationalLevel: data.EducationalLevel || "",
           gender: data.Gender || "",
@@ -156,15 +152,15 @@ function PersonalInfo() {
           apartment: data["Apartment "] || "",
           area: data.Area || "",
           city: data.City || "",
-          emergencyContactName: String(ecName || ""),
-          emergencyContactNumber: String(ecNumber || ""),
+          emergencyContactName: data["Emergency Contact Name"] || "",
+          emergencyContactNumber: data["Emergency Contact Number"] || "",
         };
         setUserData({ companyName: normalized.companyName });
         setFormData(normalized);
         originalData.current = normalized;
         setChanged(false);
       })
-      .catch((err) => console.error("Error fetching info:", err))
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   };
 
@@ -213,7 +209,7 @@ function PersonalInfo() {
     setChanged(hasChanges(updated, originalData.current));
   };
 
-  // 🆕 Detect when ID or expiration changes
+  // 🆕 Detect ID change
   useEffect(() => {
     if (!originalData.current) return;
     const nationalIdChanged =
@@ -222,15 +218,28 @@ function PersonalInfo() {
     setRequireIdImages(nationalIdChanged);
   }, [formData.nationalId, formData.nationalIdExpiration]);
 
-  // 🆕 Modified handleUpdate to include file uploads
+  // 🆕 Modified handleUpdate
   const handleUpdate = () => {
     if (!changed && !forceUpdate && !showWarning) return;
 
     const requiredFields = [
-      "fullName", "employeeId", "phone", "personalEmail", "maritalStatus",
-      "educationalLevel", "gender", "nationalId", "nationality", "postalCode",
-      "streetAddress", "streetNumber", "area", "city", "apartment",
-      "emergencyContactName", "emergencyContactNumber",
+      "fullName",
+      "employeeId",
+      "phone",
+      "personalEmail",
+      "maritalStatus",
+      "educationalLevel",
+      "gender",
+      "nationalId",
+      "nationality",
+      "postalCode",
+      "streetAddress",
+      "streetNumber",
+      "area",
+      "city",
+      "apartment",
+      "emergencyContactName",
+      "emergencyContactNumber",
     ];
 
     const missing =
@@ -252,23 +261,18 @@ function PersonalInfo() {
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
     setLoading(true);
 
-    // 🆕 Create FormData payload
     const formPayload = new FormData();
     formPayload.append("oid", oid);
     formPayload.append("update", "true");
     Object.entries(formData).forEach(([k, v]) => formPayload.append(k, v ?? ""));
     formPayload.append("confirmationOnly", (!changed && (forceUpdate || showWarning)).toString());
 
-    // 🆕 Add ID images if required
     if (requireIdImages) {
       if (idFrontImage) formPayload.append("idFrontImage", idFrontImage);
       if (idBackImage) formPayload.append("idBackImage", idBackImage);
     }
 
-    fetch(urlUserInfo, {
-      method: "POST",
-      body: formPayload,
-    })
+    fetch(urlUserInfo, { method: "POST", body: formPayload })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         try {
@@ -293,21 +297,11 @@ function PersonalInfo() {
         navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
       })
       .catch((err) => {
-        console.error("Update error:", err);
-        setSnackbar({
-          open: true,
-          message: "Failed to update information.",
-          severity: "error",
-        });
+        console.error(err);
+        setSnackbar({ open: true, message: "Failed to update information.", severity: "error" });
       })
       .finally(() => setLoading(false));
   };
-
-  useEffect(() => {
-    if (localStorage.getItem("needsUpdate") === "false") {
-      setShowWarning(false);
-    }
-  }, []);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -327,8 +321,33 @@ function PersonalInfo() {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* header & personal info */}
-      {/* ... (unchanged sections) ... */}
+      {/* header */}
+      <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Grid item sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {userData?.companyName && companyLogos[userData.companyName] && (
+            <img
+              src={companyLogos[userData.companyName]}
+              alt={userData.companyName}
+              style={{ width: 60, height: 60, objectFit: "contain" }}
+            />
+          )}
+          <Typography variant="h6" fontWeight="bold">
+            {userData.companyName}
+          </Typography>
+        </Grid>
+        <Grid item sx={{ display: "flex", gap: 2 }}>
+          <Button variant="outlined" color="primary" onClick={() => navigate("/")}>
+            ← Back
+          </Button>
+          <Button variant="outlined" color="error" onClick={logout}>
+            Logout
+          </Button>
+        </Grid>
+      </Grid>
+
+      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+        Employee ID: {formData.employeeId}
+      </Typography>
 
       {/* 🪪 Identification */}
       <Paper elevation={1} sx={{ mt: 4, p: 3, backgroundColor: "#f9fafb", borderRadius: 2 }}>
@@ -379,7 +398,7 @@ function PersonalInfo() {
         </Grid>
       </Paper>
 
-      {/* 🆕 Added image upload UI */}
+      {/* 🆕 Image Uploads */}
       {requireIdImages && (
         <Paper elevation={1} sx={{ mt: 2, p: 3, backgroundColor: "#fff8e1", borderRadius: 2 }}>
           <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
@@ -423,8 +442,28 @@ function PersonalInfo() {
         </Paper>
       )}
 
-      {/* rest of your unchanged address & contact sections below */}
-      {/* ... */}
+      <Grid container spacing={3} mt={3} alignItems="center">
+        <Grid item xs={12} textAlign="right">
+          <Button
+            variant="contained"
+            color="success"
+            disabled={(!changed && !forceUpdate && !showWarning) || loading}
+            onClick={handleUpdate}
+          >
+            {loading ? <CircularProgress size={24} /> : "Update Information"}
+          </Button>
+        </Grid>
+      </Grid>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      >
+        <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
