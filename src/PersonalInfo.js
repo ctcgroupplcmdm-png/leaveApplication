@@ -279,7 +279,20 @@ const handleUpdate = async () => {
     confirmationOnly: !changed && (forceUpdate || showWarning), // tells Logic App this was just confirmation
   };
 
-  // 🔹 Upload images if ID changed (block update if upload fails)
+  // ✅ If ID upload is visible, make sure both files are uploaded
+if (showIdUpload) {
+  if (!frontIdFile || !backIdFile) {
+    setSnackbar({
+      open: true,
+      message: "Please upload both front and back ID images before updating.",
+      severity: "error",
+    });
+    return; // ⛔ stop submission
+  }
+}
+
+
+
   // 🔹 Upload images if ID changed (block update if upload fails)
 if (showIdUpload) {
   if (!frontIdFile || !backIdFile) {
@@ -671,8 +684,25 @@ useEffect(() => {
         )}
       </Box>
     </Grid>
+
+    {(!frontIdFile || !backIdFile) && (
+      <Grid item xs={12}>
+        <Alert
+          severity="warning"
+          sx={{
+            mt: 2,
+            borderRadius: 1,
+            backgroundColor: "#fff8e1",
+            border: "1px solid #ffe58f",
+          }}
+        >
+          ⚠️ Please upload both Front and Back ID images before submitting your update.
+        </Alert>
+      </Grid>
+    )}
   </>
 )}
+
 
 
 
