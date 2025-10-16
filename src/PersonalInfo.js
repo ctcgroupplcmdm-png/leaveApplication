@@ -279,100 +279,50 @@ const handleUpdate = async () => {
     confirmationOnly: !changed && (forceUpdate || showWarning), // tells Logic App this was just confirmation
   };
 
-  // If ID changed and uploads are required
-if (showIdUpload) {
-  if (!frontIdFile || !backIdFile) {
-    setSnackbar({
-      open: true,
-      message: "Please upload both front and back ID images before updating.",
-      severity: "error",
-    });
-    setLoading(false);
-    return;
-  }
+  // 🔹 Upload images if ID changed (block update if upload fails)
+  
 
-  const uploadFormData = new FormData();
-  uploadFormData.append("employeeId", formData.employeeId);
-  uploadFormData.append("frontId", frontIdFile);
-  uploadFormData.append("backId", backIdFile);
-
-  // 🔹 Send files to the separate Logic App (replace URL)
-  await fetch("https://prod-29.westeurope.logic.azure.com:443/workflows/bc2c79c0b43349efb92d98f11845bbc8/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=k5Xj1UP0jocR307QcQtkrdxGgL2wlEzzgbFyoPPEDJU", {
+  // 🔹 Continue with main data update
+  fetch(urlUserInfo, {
     method: "POST",
-    body: uploadFormData,
-  });
-}
-
-// 🔹 Then continue with your main data update
-// If ID changed and uploads are required
-if (showIdUpload) {
-  if (!frontIdFile || !backIdFile) {
-    setSnackbar({
-      open: true,
-      message: "Please upload both front and back ID images before updating.",
-      severity: "error",
-    });
-    setLoading(false);
-    return;
-  }
-
-  const uploadFormData = new FormData();
-  uploadFormData.append("employeeId", formData.employeeId);
-  uploadFormData.append("frontId", frontIdFile);
-  uploadFormData.append("backId", backIdFile);
-
-  // 🔹 Send files to separate Logic App (replace URL)
-  fetch("https://<YOUR-UPLOAD-LOGIC-APP-URL>", {
-    method: "POST",
-    body: uploadFormData,
-  }).catch((err) => {
-    console.error("Upload error:", err);
-    setSnackbar({
-      open: true,
-      message: "Failed to upload ID images.",
-      severity: "error",
-    });
-  });
-}
-
-// 🔹 Continue with main data update
-fetch(urlUserInfo, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload),
-})
-  .then(async (res) => {
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    try {
-      return await res.json();
-    } catch {
-      return null;
-    }
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   })
-  .then(() => {
-    setSnackbar({
-      open: true,
-      message:
-        !changed && (forceUpdate || showWarning)
-          ? "Information confirmed successfully."
-          : "Information updated successfully.",
-      severity: "success",
-    });
-    originalData.current = formData;
-    setChanged(false);
-    setShowWarning(false);
-    localStorage.setItem("needsUpdate", "false");
-    navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
-  })
-  .catch((err) => {
-    console.error("Update error:", err);
-    setSnackbar({
-      open: true,
-      message: "Failed to update information.",
-      severity: "error",
-    });
-  })
-  .finally(() => setLoading(false));
+    .then(async (res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      try {
+        return await res.json();
+      } catch {
+        return null;
+      }
+    })
+    .then(() => {
+      setSnackbar({
+        open: true,
+        message:
+          !changed && (forceUpdate || showWarning)
+            ? "Information confirmed successfully."
+            : "Information updated successfully.",
+        severity: "success",
+      });
+      originalData.current = formData;
+      setChanged(false);
+
+      // ✅ Hide warning everywhere after success
+      setShowWarning(false);
+      localStorage.setItem("needsUpdate", "false");
+      navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
+    })
+    .catch((err) => {
+      console.error("Update error:", err);
+      setSnackbar({
+        open: true,
+        message: "Failed to update information.",
+        severity: "error",
+      });
+    })
+    .finally(() => setLoading(false));
+};
 
 
 useEffect(() => {
