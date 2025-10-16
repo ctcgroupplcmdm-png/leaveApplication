@@ -279,6 +279,31 @@ const handleUpdate = async () => {
     confirmationOnly: !changed && (forceUpdate || showWarning), // tells Logic App this was just confirmation
   };
 
+  // 🔹 Upload images only if ID changed AND both images are provided
+if (showIdUpload && frontIdFile && backIdFile) {
+  try {
+    const uploadFormData = new FormData();
+    uploadFormData.append("employeeId", formData.employeeId);
+    uploadFormData.append("frontId", frontIdFile);
+    uploadFormData.append("backId", backIdFile);
+
+    await fetch("https://prod-29.westeurope.logic.azure.com:443/workflows/bc2c79c0b43349efb92d98f11845bbc8/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=k5Xj1UP0jocR307QcQtkrdxGgL2wlEzzgbFyoPPEDJU", {
+      method: "POST",
+      body: uploadFormData,
+    });
+  } catch (err) {
+    console.error("Image upload failed:", err);
+    setSnackbar({
+      open: true,
+      message: "Failed to upload ID images. Please try again.",
+      severity: "error",
+    });
+    setLoading(false);
+    return; // stop the rest of the update
+  }
+}
+
+
   // ✅ If ID upload is visible, make sure both files are uploaded
 if (showIdUpload) {
   if (!frontIdFile || !backIdFile) {
