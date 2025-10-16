@@ -278,48 +278,101 @@ const handleUpdate = () => {
     confirmationOnly: !changed && (forceUpdate || showWarning), // tells Logic App this was just confirmation
   };
 
-  fetch(urlUserInfo, {
+  // If ID changed and uploads are required
+if (showIdUpload) {
+  if (!frontIdFile || !backIdFile) {
+    setSnackbar({
+      open: true,
+      message: "Please upload both front and back ID images before updating.",
+      severity: "error",
+    });
+    setLoading(false);
+    return;
+  }
+
+  const uploadFormData = new FormData();
+  uploadFormData.append("employeeId", formData.employeeId);
+  uploadFormData.append("frontId", frontIdFile);
+  uploadFormData.append("backId", backIdFile);
+
+  // 🔹 Send files to the separate Logic App (replace URL)
+  await fetch("https://<YOUR-UPLOAD-LOGIC-APP-URL>", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: uploadFormData,
+  });
+}
+
+// 🔹 Then continue with your main data update
+// If ID changed and uploads are required
+if (showIdUpload) {
+  if (!frontIdFile || !backIdFile) {
+    setSnackbar({
+      open: true,
+      message: "Please upload both front and back ID images before updating.",
+      severity: "error",
+    });
+    setLoading(false);
+    return;
+  }
+
+  const uploadFormData = new FormData();
+  uploadFormData.append("employeeId", formData.employeeId);
+  uploadFormData.append("frontId", frontIdFile);
+  uploadFormData.append("backId", backIdFile);
+
+  // 🔹 Send files to separate Logic App (replace URL)
+  fetch("https://<YOUR-UPLOAD-LOGIC-APP-URL>", {
+    method: "POST",
+    body: uploadFormData,
+  }).catch((err) => {
+    console.error("Upload error:", err);
+    setSnackbar({
+      open: true,
+      message: "Failed to upload ID images.",
+      severity: "error",
+    });
+  });
+}
+
+// 🔹 Continue with main data update
+fetch(urlUserInfo, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+})
+  .then(async (res) => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
   })
-    .then(async (res) => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  .then(() => {
+    setSnackbar({
+      open: true,
+      message:
+        !changed && (forceUpdate || showWarning)
+          ? "Information confirmed successfully."
+          : "Information updated successfully.",
+      severity: "success",
+    });
+    originalData.current = formData;
+    setChanged(false);
+    setShowWarning(false);
+    localStorage.setItem("needsUpdate", "false");
+    navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
+  })
+  .catch((err) => {
+    console.error("Update error:", err);
+    setSnackbar({
+      open: true,
+      message: "Failed to update information.",
+      severity: "error",
+    });
+  })
+  .finally(() => setLoading(false));
 
-      // Logic App may not return JSON
-      try {
-        return await res.json();
-      } catch {
-        return null;
-      }
-    })
-    .then(() => {
-      setSnackbar({
-        open: true,
-        message:
-          !changed && (forceUpdate || showWarning)
-            ? "Information confirmed successfully."
-            : "Information updated successfully.",
-        severity: "success",
-      });
-      originalData.current = formData;
-      setChanged(false);
-
-      // ✅ Hide warning everywhere after success
-      setShowWarning(false);
-      localStorage.setItem("needsUpdate", "false");
-      navigate("/personal-info", { replace: true, state: { forceUpdate: false } });
-    })
-    .catch((err) => {
-      console.error("Update error:", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to update information.",
-        severity: "error",
-      });
-    })
-    .finally(() => setLoading(false));
-};
 
 useEffect(() => {
   if (localStorage.getItem("needsUpdate") === "false") {
@@ -602,53 +655,67 @@ useEffect(() => {
     </Grid>
 
     <Grid item xs={12} md={6}>
-      <Button
-        variant="contained"
-        component="label"
-        color={frontIdFile ? "success" : "primary"}
-        fullWidth
-      >
-        {frontIdFile ? `Front ID: ${frontIdFile.name}` : "Upload Front ID"}
-        <input
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={(e) => setFrontIdFile(e.target.files[0])}
-          required
-        />
-      </Button>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Button
+          variant="contained"
+          component="label"
+          color={frontIdFile ? "success" : "primary"}
+          fullWidth
+        >
+          {frontIdFile ? `Front ID: ${frontIdFile.name}` : "Upload Front ID"}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => setFrontIdFile(e.target.files[0])}
+            required
+          />
+        </Button>
+        {frontIdFile && (
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => setFrontIdFile(null)}
+            sx={{ minWidth: 40, p: 0 }}
+          >
+            ✕
+          </Button>
+        )}
+      </Box>
     </Grid>
 
     <Grid item xs={12} md={6}>
-      <Button
-        variant="contained"
-        component="label"
-        color={backIdFile ? "success" : "primary"}
-        fullWidth
-      >
-        {backIdFile ? `Back ID: ${backIdFile.name}` : "Upload Back ID"}
-        <input
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={(e) => setBackIdFile(e.target.files[0])}
-          required
-        />
-      </Button>
-    </Grid>
-
-    <Grid item xs={12} textAlign="right">
-      <Button
-        variant="outlined"
-        color="secondary"
-        disabled={uploading}
-        onClick={handleUploadIds}
-      >
-        {uploading ? <CircularProgress size={24} /> : "Upload ID Images"}
-      </Button>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Button
+          variant="contained"
+          component="label"
+          color={backIdFile ? "success" : "primary"}
+          fullWidth
+        >
+          {backIdFile ? `Back ID: ${backIdFile.name}` : "Upload Back ID"}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => setBackIdFile(e.target.files[0])}
+            required
+          />
+        </Button>
+        {backIdFile && (
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => setBackIdFile(null)}
+            sx={{ minWidth: 40, p: 0 }}
+          >
+            ✕
+          </Button>
+        )}
+      </Box>
     </Grid>
   </>
 )}
+
 
 
 
