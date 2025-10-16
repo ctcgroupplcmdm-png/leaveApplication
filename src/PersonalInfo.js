@@ -121,7 +121,7 @@ const forceUpdate = location.state?.forceUpdate || false;
 const [frontIdFile, setFrontIdFile] = useState(null);
 const [backIdFile, setBackIdFile] = useState(null);
 const [showIdUpload, setShowIdUpload] = useState(false);
-const [uploading, setUploading] = useState(false);
+
 
   
 
@@ -348,43 +348,7 @@ useEffect(() => {
 
   const logout = () => instance.logoutRedirect();
 
-  const handleUploadIds = async () => {
-  if (!frontIdFile || !backIdFile) {
-    setSnackbar({
-      open: true,
-      message: "Please upload both front and back ID images.",
-      severity: "error",
-    });
-    return;
-  }
-
-  const formDataUpload = new FormData();
-  formDataUpload.append("employeeId", formData.employeeId);
-  formDataUpload.append("frontId", frontIdFile);
-  formDataUpload.append("backId", backIdFile);
-
-  setUploading(true);
-  try {
-    await fetch("https://<YOUR-LOGIC-APP-URL>", {
-      method: "POST",
-      body: formDataUpload,
-    });
-    setSnackbar({
-      open: true,
-      message: "ID images uploaded successfully.",
-      severity: "success",
-    });
-  } catch (err) {
-    console.error("Upload error:", err);
-    setSnackbar({
-      open: true,
-      message: "Failed to upload ID images.",
-      severity: "error",
-    });
-  } finally {
-    setUploading(false);
-  }
-};
+ 
 
 
   return (
