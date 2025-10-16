@@ -280,7 +280,50 @@ const handleUpdate = async () => {
   };
 
   // 🔹 Upload images if ID changed (block update if upload fails)
-  
+  // 🔹 Upload images if ID changed (block update if upload fails)
+if (showIdUpload) {
+  if (!frontIdFile || !backIdFile) {
+    setSnackbar({
+      open: true,
+      message: "Please upload both front and back ID images before updating.",
+      severity: "error",
+    });
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const uploadFormData = new FormData();
+    uploadFormData.append("employeeId", formData.employeeId);
+    uploadFormData.append("frontId", frontIdFile);
+    uploadFormData.append("backId", backIdFile);
+
+    // ✅ Your working Logic App trigger for uploads
+    const uploadResponse = await fetch(
+      "https://prod-29.westeurope.logic.azure.com:443/workflows/bc2c79c0b43349efb92d98f11845bbc8/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=k5Xj1UP0jocR307QcQtkrdxGgL2wlEzzgbFyoPPEDJU",
+      {
+        method: "POST",
+        body: uploadFormData,
+      }
+    );
+
+    if (!uploadResponse.ok) {
+      throw new Error(`Upload failed with status ${uploadResponse.status}`);
+    }
+
+    console.log("✅ ID images uploaded successfully.");
+  } catch (error) {
+    console.error("Upload error:", error);
+    setSnackbar({
+      open: true,
+      message: "Failed to upload ID images. Please try again.",
+      severity: "error",
+    });
+    setLoading(false);
+    return;
+  }
+}
+
 
   // 🔹 Continue with main data update
   fetch(urlUserInfo, {
