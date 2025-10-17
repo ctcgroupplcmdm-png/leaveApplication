@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useMsal } from "@azure/msal-react";
 import {
   Box,
@@ -85,8 +86,9 @@ const loadYearFromCache = (year) => {
 
 
 
-  const fetchLeaveData = (oid) => {
+const fetchLeaveData = useCallback((oid) => {
   setLoading(true);
+
   fetch(
     "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
     {
@@ -98,30 +100,33 @@ const loadYearFromCache = (year) => {
     .then((res) => res.json())
     .then((data) => {
       // Expect: { currentYear: 2025, previousYear: 2024, leavesTaken: [...] }
-      // leavesTaken may already be an array; if it’s a stringified JSON, parse it:
       const rows = Array.isArray(data.leavesTaken)
         ? data.leavesTaken
         : data.leavesTaken
         ? JSON.parse(data.leavesTaken)
         : [];
 
-      // Group rows by year (use "Year" field if exists, else from Start Date)
+      // 🧮 Group rows by year (from field "Year" or infer from Start Date)
       const grouped = rows.reduce((acc, leave) => {
         const year =
           leave["Year"] ||
-          (leave["Start Date"] ? new Date(leave["Start Date"]).getFullYear() : null);
+          (leave["Start Date"]
+            ? new Date(leave["Start Date"]).getFullYear()
+            : null);
         if (!year) return acc;
         if (!acc[year]) acc[year] = [];
         acc[year].push(leave);
         return acc;
       }, {});
 
+      // ✅ Cache for all years
       setAllLeaves(grouped);
 
       const thisYear = data.currentYear || new Date().getFullYear();
-      setSelectedYear(thisYear);      // keep UI in sync
-      loadYearFromCache(thisYear);    // populate table/balances
+      setSelectedYear(thisYear);
+      loadYearFromCache(thisYear); // local table update
 
+      // 🧾 Basic user info
       setUserData({
         name: data.displayName,
         employeeId: data.employeeId,
@@ -131,7 +136,8 @@ const loadYearFromCache = (year) => {
     })
     .catch((err) => console.error("Error fetching Logic App data:", err))
     .finally(() => setLoading(false));
-};
+}, [loadYearFromCache]); // ✅ dependencies
+
 
 
 useEffect(() => {
@@ -140,7 +146,7 @@ useEffect(() => {
     const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
     fetchLeaveData(oid); // fetch both years once
   }
-}, [accounts]);
+}, [accounts, fetchLeaveData]);
 
 
   if (!userData) return <Typography>Loading user data...</Typography>;
