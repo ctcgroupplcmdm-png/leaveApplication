@@ -50,6 +50,9 @@ function UserInfo() {
   const [selectedTypes, setSelectedTypes] = useState(["Annual Leave"]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
+  // cache for all years returned by Logic App: { [year]: LeaveRow[] }
+const [allLeaves, setAllLeaves] = useState({});
+
 
   // 🟩 Modal state
   const [openModal, setOpenModal] = useState(false);
@@ -62,51 +65,83 @@ function UserInfo() {
   });
   const [warning, setWarning] = useState("");
 
-  const fetchLeaveData = (oid, year) => {
-    setLoading(true);
-    fetch(
-      "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oid, year }),
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.leavesTaken) {
-          const parsedLeaves = JSON.parse(data.leavesTaken);
-          const entitlementRow = parsedLeaves.find(
-            (l) => l["Absence Description"] === "Yearly Entitlement Balance"
-          );
-          const annualAllowance = entitlementRow?.["Remaining Balance"] || 0;
-          const filtered = parsedLeaves.filter(
-            (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
-          );
-          setLeaves(filtered);
-          const lastBalance =
-            filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
-          setRemainingBalance({ annualAllowance, lastBalance });
-        }
+  // Loads leaves & balances for a given year from the local cache (allLeaves)
+const loadYearFromCache = (year) => {
+  const yearData = allLeaves[year] || [];
 
-        setUserData({
-          name: data.displayName,
-          employeeId: data.employeeId,
-          phone: data.mobilePhone,
-          companyName: data.companyName || "Company",
-        });
-      })
-      .catch((err) => console.error("Error fetching Logic App data:", err))
-      .finally(() => setLoading(false));
-  };
+  const entitlementRow = yearData.find(
+    (l) => l["Absence Description"] === "Yearly Entitlement Balance"
+  );
+  const annualAllowance = entitlementRow?.["Remaining Balance"] || 0;
 
-  useEffect(() => {
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-      fetchLeaveData(oid, selectedYear);
+  const filtered = yearData.filter(
+    (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
+  );
+  setLeaves(filtered);
+
+  const lastBalance = filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
+  setRemainingBalance({ annualAllowance, lastBalance });
+};
+
+
+
+  const fetchLeaveData = (oid) => {
+  setLoading(true);
+  fetch(
+    "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ oid }), // ⬅️ only OID now
     }
-  }, [accounts, selectedYear]);
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      // Expect: { currentYear: 2025, previousYear: 2024, leavesTaken: [...] }
+      // leavesTaken may already be an array; if it’s a stringified JSON, parse it:
+      const rows = Array.isArray(data.leavesTaken)
+        ? data.leavesTaken
+        : data.leavesTaken
+        ? JSON.parse(data.leavesTaken)
+        : [];
+
+      // Group rows by year (use "Year" field if exists, else from Start Date)
+      const grouped = rows.reduce((acc, leave) => {
+        const year =
+          leave["Year"] ||
+          (leave["Start Date"] ? new Date(leave["Start Date"]).getFullYear() : null);
+        if (!year) return acc;
+        if (!acc[year]) acc[year] = [];
+        acc[year].push(leave);
+        return acc;
+      }, {});
+
+      setAllLeaves(grouped);
+
+      const thisYear = data.currentYear || new Date().getFullYear();
+      setSelectedYear(thisYear);      // keep UI in sync
+      loadYearFromCache(thisYear);    // populate table/balances
+
+      setUserData({
+        name: data.displayName,
+        employeeId: data.employeeId,
+        phone: data.mobilePhone,
+        companyName: data.companyName || "Company",
+      });
+    })
+    .catch((err) => console.error("Error fetching Logic App data:", err))
+    .finally(() => setLoading(false));
+};
+
+
+useEffect(() => {
+  if (accounts.length > 0) {
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+    fetchLeaveData(oid); // fetch both years once
+  }
+}, [accounts]);
+
 
   if (!userData) return <Typography>Loading user data...</Typography>;
 
@@ -273,28 +308,36 @@ function UserInfo() {
           <Typography variant="h5" fontWeight="bold">
             Leave Records
           </Typography>
-          <Button
-            variant={selectedYear === currentYear ? "contained" : "outlined"}
-            onClick={() => setSelectedYear(currentYear)}
-            disabled={loading}
-          >
-            {loading && selectedYear === currentYear ? (
-              <CircularProgress size={18} />
-            ) : (
-              currentYear
-            )}
-          </Button>
-          <Button
-            variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
-            onClick={() => setSelectedYear(currentYear - 1)}
-            disabled={loading}
-          >
-            {loading && selectedYear === currentYear - 1 ? (
-              <CircularProgress size={18} />
-            ) : (
-              currentYear - 1
-            )}
-          </Button>
+         <Button
+  variant={selectedYear === currentYear ? "contained" : "outlined"}
+  onClick={() => {
+    setSelectedYear(currentYear);
+    loadYearFromCache(currentYear);
+  }}
+  disabled={loading}
+>
+  {loading && selectedYear === currentYear ? (
+    <CircularProgress size={18} />
+  ) : (
+    currentYear
+  )}
+</Button>
+
+<Button
+  variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
+  onClick={() => {
+    setSelectedYear(currentYear - 1);
+    loadYearFromCache(currentYear - 1);
+  }}
+  disabled={loading}
+>
+  {loading && selectedYear === currentYear - 1 ? (
+    <CircularProgress size={18} />
+  ) : (
+    currentYear - 1
+  )}
+</Button>
+
           <Button variant="contained" color="success" onClick={exportToPDF} sx={{ ml: 2 }}>
             Save as PDF
           </Button>
