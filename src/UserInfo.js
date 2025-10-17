@@ -67,22 +67,27 @@ const [allLeaves, setAllLeaves] = useState({});
   const [warning, setWarning] = useState("");
 
   // Loads leaves & balances for a given year from the local cache (allLeaves)
-const loadYearFromCache = (year) => {
-  const yearData = allLeaves[year] || [];
+const loadYearFromCache = useCallback(
+  (year) => {
+    const yearData = allLeaves[year] || [];
 
-  const entitlementRow = yearData.find(
-    (l) => l["Absence Description"] === "Yearly Entitlement Balance"
-  );
-  const annualAllowance = entitlementRow?.["Remaining Balance"] || 0;
+    const entitlementRow = yearData.find(
+      (l) => l["Absence Description"] === "Yearly Entitlement Balance"
+    );
+    const annualAllowance = entitlementRow?.["Remaining Balance"] || 0;
 
-  const filtered = yearData.filter(
-    (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
-  );
-  setLeaves(filtered);
+    const filtered = yearData.filter(
+      (l) => l["Absence Description"] !== "Yearly Entitlement Balance"
+    );
+    setLeaves(filtered);
 
-  const lastBalance = filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
-  setRemainingBalance({ annualAllowance, lastBalance });
-};
+    const lastBalance =
+      filtered[filtered.length - 1]?.["Remaining Balance"] || 0;
+    setRemainingBalance({ annualAllowance, lastBalance });
+  },
+  [allLeaves] // ✅ dependencies
+);
+
 
 
 
