@@ -87,7 +87,7 @@ function UserInfo() {
     [allLeaves] // ✅ dependencies
   );
 
-  // ✅ CHANGED: accept `year` and send it in the body
+  // ✅ accept `year` and send it in the body
   const fetchLeaveData = useCallback(
     (oid, year) => {
       setLoading(true);
@@ -100,13 +100,7 @@ function UserInfo() {
           body: JSON.stringify({ oid, year }), // ⬅️ send year
         }
       )
-        .then(async (res) => {
-          if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`HTTP ${res.status} – ${text}`);
-          }
-          return res.json();
-        })
+        .then((res) => res.json())
         .then((data) => {
           // Expect: { currentYear: 2025, previousYear: 2024, leavesTaken: [...] }
           const rows = Array.isArray(data.leavesTaken)
@@ -317,11 +311,11 @@ function UserInfo() {
       </Typography>
 
       <Grid container alignItems="center" justifyContent="space-between" sx={{ mt: 4, mb: 2 }}>
-        <Grid item sx={{ display: "flex", alignItems="center", gap: 2 }}>
+        <Grid item sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Typography variant="h5" fontWeight="bold">
             Leave Records
           </Typography>
-          {/* ✅ CHANGED: re-fetch with selected year */}
+          {/* re-fetch with selected year */}
           <Button
             variant={selectedYear === currentYear ? "contained" : "outlined"}
             onClick={() => {
@@ -339,7 +333,7 @@ function UserInfo() {
             )}
           </Button>
 
-          {/* ✅ CHANGED: re-fetch with previous year */}
+          {/* re-fetch with previous year */}
           <Button
             variant={selectedYear === currentYear - 1 ? "contained" : "outlined"}
             onClick={() => {
