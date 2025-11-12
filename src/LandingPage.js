@@ -33,13 +33,13 @@ function LandingPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ❌ REMOVED urlUserInfo (no user-info call here)
-
-  // Keep status URL only
+  // Logic App URLs
+  const urlUserInfo =
+    "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg";
   const urlUserStatus =
     "https://prod-165.westeurope.logic.azure.com:443/workflows/c484da6f94ad4cd5aea8a92377375728/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=Bt8eh3QsyGHRYRmzqf2S0ujsaGxgxyVqUyCpYQmiIMY";
 
-  // Run-once guard to avoid multiple triggers
+  // Run-once guard to avoid duplicate triggers
   const didInit = useRef(false);
 
   useEffect(() => {
@@ -50,20 +50,24 @@ function LandingPage() {
       const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
       try {
-        // ✅ Set minimal user info locally (no user-info HTTP call)
-        const name = account.name || "User";
-        const employeeId = "N/A"; // placeholder since we’re not calling user-info
-        const companyName = "Company";
-        const phone = ""; // optional
+        // 🟦 1) Get real user info from your flow (no year → user info branch)
+        const infoRes = await fetch(urlUserInfo, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oid }),
+        });
+        const infoData = await infoRes.json();
+
+        const employeeId = infoData.employeeId;
 
         setUserData({
-          name,
-          employeeId,
-          phone,
-          companyName,
+          name: infoData.displayName || account.name || "User",
+          employeeId: employeeId || "N/A",
+          phone: infoData.mobilePhone || "",
+          companyName: infoData.companyName || "Company",
         });
 
-        // 🟩 Fetch user status (only this flow is called)
+        // 🟩 2) Fetch user status (uses employeeId from the info flow)
         const statusRes = await fetch(urlUserStatus, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -80,13 +84,22 @@ function LandingPage() {
 
         setUserStatus(status);
 
-        // 🧠 Save it so PersonalInfo can read it
+        // 🧠 Save it so other pages can read it
         localStorage.setItem(
           "needsUpdate",
           status === "NeedsUpdate" ? "true" : "false"
         );
+        localStorage.setItem(
+          "userData",
+          JSON.stringify({
+            name: infoData.displayName || account.name || "User",
+            employeeId: employeeId || "N/A",
+            phone: infoData.mobilePhone || "",
+            companyName: infoData.companyName || "Company",
+          })
+        );
       } catch (err) {
-        console.error("Error fetching user status:", err);
+        console.error("Error fetching user data or status:", err);
       } finally {
         setLoading(false);
       }
