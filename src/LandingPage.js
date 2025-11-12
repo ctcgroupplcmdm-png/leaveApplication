@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useMsal } from "@azure/msal-react";
 import Tooltip from "@mui/material/Tooltip";
 
@@ -33,65 +33,69 @@ function LandingPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Logic App URLs
-  const urlUserInfo =
-    "https://prod-126.westeurope.logic.azure.com:443/workflows/c3bf058acb924c11925e5c660e1c3b5a/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=tWDPd-5b4hzpzvJJjelfZCARBviG3gIJdTLHnXttUFg";
+  // ❌ REMOVED urlUserInfo (no user-info call here)
+
+  // Keep status URL only
   const urlUserStatus =
     "https://prod-165.westeurope.logic.azure.com:443/workflows/c484da6f94ad4cd5aea8a92377375728/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=Bt8eh3QsyGHRYRmzqf2S0ujsaGxgxyVqUyCpYQmiIMY";
 
+  // Run-once guard to avoid multiple triggers
+  const didInit = useRef(false);
+
   useEffect(() => {
-  const fetchData = async () => {
-    if (accounts.length === 0) return;
+    const fetchData = async () => {
+      if (accounts.length === 0) return;
 
-    const account = accounts[0];
-    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+      const account = accounts[0];
+      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
 
-    try {
-      const infoRes = await fetch(urlUserInfo, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oid }),
-      });
-      const infoData = await infoRes.json();
+      try {
+        // ✅ Set minimal user info locally (no user-info HTTP call)
+        const name = account.name || "User";
+        const employeeId = "N/A"; // placeholder since we’re not calling user-info
+        const companyName = "Company";
+        const phone = ""; // optional
 
-      const employeeId = infoData.employeeId;
+        setUserData({
+          name,
+          employeeId,
+          phone,
+          companyName,
+        });
 
-      setUserData({
-        name: infoData.displayName,
-        employeeId: employeeId,
-        phone: infoData.mobilePhone,
-        companyName: infoData.companyName || "Company",
-      });
+        // 🟩 Fetch user status (only this flow is called)
+        const statusRes = await fetch(urlUserStatus, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oid, employeeId }),
+        });
+        const statusData = await statusRes.json();
 
-      // 🟩 Fetch user status
-      const statusRes = await fetch(urlUserStatus, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oid, employeeId }),
-      });
-      const statusData = await statusRes.json();
+        const status =
+          statusData.status === true
+            ? "NeedsUpdate"
+            : statusData.status === false
+            ? "UpToDate"
+            : "Unknown";
 
-      const status =
-        statusData.status === true
-          ? "NeedsUpdate"
-          : statusData.status === false
-          ? "UpToDate"
-          : "Unknown";
+        setUserStatus(status);
 
-      setUserStatus(status);
+        // 🧠 Save it so PersonalInfo can read it
+        localStorage.setItem(
+          "needsUpdate",
+          status === "NeedsUpdate" ? "true" : "false"
+        );
+      } catch (err) {
+        console.error("Error fetching user status:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      // 🧠 Save it so PersonalInfo can read it
-      localStorage.setItem("needsUpdate", status === "NeedsUpdate" ? "true" : "false");
-    } catch (err) {
-      console.error("Error fetching user data or status:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, [accounts]);
-
+    if (didInit.current) return;
+    didInit.current = true;
+    fetchData();
+  }, [accounts]);
 
   const logout = () => instance.logoutRedirect();
 
@@ -175,35 +179,33 @@ function LandingPage() {
           }}
         >
           <Tooltip
-  title={
-    userStatus === "NeedsUpdate"
-      ? "Access to the Annual Leave Portal is disabled until your personal information is updated."
-      : ""
-  }
->
-  {/* Tooltip needs a wrapper <span> when button is disabled */}
-  <span>
-    <Button
-      variant="contained"
-      color="primary"
-      size="large"
-      sx={{
-        px: 5,
-        py: 2,
-        textTransform: "none",
-        fontSize: "1.1rem",
-        borderRadius: "12px",
-        opacity: userStatus === "NeedsUpdate" ? 0.6 : 1,
-      }}
-      disabled={userStatus === "NeedsUpdate"}
-      onClick={() => navigate("/annual-leave")}
-    >
-      🗓 Annual Leave Portal
-    </Button>
-  </span>
-</Tooltip>
-
-
+            title={
+              userStatus === "NeedsUpdate"
+                ? "Access to the Annual Leave Portal is disabled until your personal information is updated."
+                : ""
+            }
+          >
+            {/* Tooltip needs a wrapper <span> when button is disabled */}
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                sx={{
+                  px: 5,
+                  py: 2,
+                  textTransform: "none",
+                  fontSize: "1.1rem",
+                  borderRadius: "12px",
+                  opacity: userStatus === "NeedsUpdate" ? 0.6 : 1,
+                }}
+                disabled={userStatus === "NeedsUpdate"}
+                onClick={() => navigate("/annual-leave")}
+              >
+                🗓 Annual Leave Portal
+              </Button>
+            </span>
+          </Tooltip>
 
           {/* ✅ Keep Personal Information Button */}
           <Button
@@ -223,7 +225,7 @@ function LandingPage() {
           </Button>
         </Box>
 
-        {/* ⚠️ Warning Banner (kept as is) */}
+        {/* ⚠️ Warning Banner */}
         {userStatus === "NeedsUpdate" && (
           <Alert
             severity="warning"
