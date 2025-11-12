@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 import { useMsal } from "@azure/msal-react";
 import {
@@ -143,13 +143,18 @@ function UserInfo() {
     [loadYearFromCache] // ✅ dependencies
   );
 
+  // ✅ run-once guard to prevent multiple triggers
+  const didInit = useRef(false);
+
   useEffect(() => {
-    if (accounts.length > 0) {
-      const account = accounts[0];
-      const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
-      const year = new Date().getFullYear(); // ✅ pass current year
-      fetchLeaveData(oid, year); // fetch for current year
-    }
+    if (didInit.current) return;
+    if (accounts.length === 0) return;
+    didInit.current = true;
+
+    const account = accounts[0];
+    const oid = account.idTokenClaims?.oid || account.idTokenClaims?.sub;
+    const year = new Date().getFullYear(); // ✅ pass current year
+    fetchLeaveData(oid, year); // fetch for current year
   }, [accounts, fetchLeaveData]);
 
   if (!userData) return <Typography>Loading user data...</Typography>;
