@@ -236,6 +236,22 @@ function LandingPage() {
           >
             👤 Personal Information
           </Button>
+		  {/* ✅ Discount Card Button */}
+<Button
+  variant="contained"
+  color="secondary"
+  size="large"
+  sx={{
+    px: 5,
+    py: 2,
+    textTransform: "none",
+    fontSize: "1.1rem",
+    borderRadius: "12px",
+  }}
+  onClick={() => navigate("/discount-card")}
+>
+  💳 Discount Card
+</Button>
         </Box>
 
         {/* ⚠️ Warning Banner */}
