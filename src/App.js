@@ -3,6 +3,7 @@ import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
 import UserInfo from "./UserInfo";
 import LandingPage from "./LandingPage";
+import DiscountCard from "./DiscountCard";
 import PersonalInfo from "./PersonalInfo";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -48,6 +49,7 @@ function App() {
             <Route path="/" element={<LandingPage onLogout={logout} />} />
             <Route path="/annual-leave" element={<UserInfo onLogout={logout} />} />
             <Route path="/personal-info" element={<PersonalInfo onLogout={logout} />} />
+			<Route path="/discount-card" element={<DiscountCard onLogout={logout} />} />
           </Routes>
         ) : (
           // 🔒 Styled Login Screen
