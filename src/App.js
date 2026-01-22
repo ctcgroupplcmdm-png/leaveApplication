@@ -3,7 +3,7 @@ import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "./authConfig";
 import UserInfo from "./UserInfo";
 import LandingPage from "./LandingPage";
-import DiscountCard from "./DiscountCard";
+import DiscountCard from "./discount-card";
 import PersonalInfo from "./PersonalInfo";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
