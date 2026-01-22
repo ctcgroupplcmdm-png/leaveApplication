@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { Box, Typography, Button, Grid, Paper } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { Box, Button, Typography, Paper } from "@mui/material";
 
 import argosy from "./assets/logos/argosy.png";
 import ctc from "./assets/logos/ctc.png";
@@ -26,122 +26,147 @@ const companyLogos = {
 };
 
 function DiscountCard() {
+  const { instance, accounts } = useMsal();
   const navigate = useNavigate();
-  const { instance } = useMsal();
+  const [userData, setUserData] = useState(null);
+  const [timestamp, setTimestamp] = useState("");
 
-  const [user, setUser] = useState(null);
-  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    if (accounts.length === 0) return;
+
+    const account = accounts[0];
+    const nameParts = account.name?.split(" ") || ["User"];
+    const firstName = nameParts[0] || "";
+    const middleName = nameParts.length === 3 ? nameParts[1] : "";
+    const surname = nameParts.length >= 2 ? nameParts[nameParts.length - 1] : "";
+
+    setUserData({
+      companyName: account.idTokenClaims?.company || "Company",
+      firstName,
+      middleName,
+      surname,
+      employeeId: account.idTokenClaims?.eid || "N/A",
+    });
+
+    // Freeze timestamp
+    const now = new Date();
+    const formatted = now.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    setTimestamp(formatted);
+  }, [accounts]);
 
   const logout = () => instance.logoutRedirect();
 
-  // 🔹 Load stored user info (same pattern you already use)
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("userData"));
-    if (stored) setUser(stored);
-  }, []);
-
-  // 🔹 Live clock
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  if (!user) return null;
-
-  // Split name
-  const parts = user.name?.split(" ") || [];
-  const first = parts[0] || "";
-  const middle = parts.length > 2 ? parts.slice(1, -1).join(" ") : "";
-  const last = parts.length > 1 ? parts[parts.length - 1] : "";
+  if (!userData) return null;
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* 🔹 Header (same style as PersonalInfo) */}
-      <Grid
-        container
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 3 }}
-      >
-        <Grid item>
-          <Button variant="outlined" onClick={() => navigate("/")}>
-            ← Back
-          </Button>
-        </Grid>
-
-        <Grid item>
-          <Button variant="outlined" color="error" onClick={logout}>
-            Logout
-          </Button>
-        </Grid>
-      </Grid>
-
-      {/* 🔹 Card */}
-      <Box
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#e0e0e0",
+        p: 2,
+      }}
+    >
+      <Paper
+        elevation={10}
         sx={{
+          width: 380,
+          height: 220,
+          borderRadius: 4,
+          background: "linear-gradient(145deg, #ffffff, #f0f0f3)",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+          position: "relative",
+          overflow: "hidden",
           display: "flex",
-          justifyContent: "center",
-          mt: 10,
+          flexDirection: "column",
         }}
       >
-        <Paper
-          elevation={6}
+        {/* Logo Background */}
+        {userData.companyName && companyLogos[userData.companyName] && (
+          <Box
+            component="img"
+            src={companyLogos[userData.companyName]}
+            alt={userData.companyName}
+            sx={{
+              width: "100%",
+              height: 80,
+              objectFit: "cover",
+            }}
+          />
+        )}
+
+        {/* DISCOUNT CARD text */}
+        <Typography
+          variant="h5"
           sx={{
-            width: 360,
-            height: 520,
-            p: 4,
-            borderRadius: 4,
-            position: "relative",
+            fontWeight: "bold",
+            fontFamily: "'Arial Black', sans-serif",
+            color: "#ff5722",
             textAlign: "center",
-            background: "#ffffff",
+            mt: 1,
+            textShadow: "1px 1px 2px rgba(0,0,0,0.4)",
           }}
         >
-          {/* Logo */}
-          {companyLogos[user.companyName] && (
-            <img
-              src={companyLogos[user.companyName]}
-              alt="logo"
-              style={{ width: 100, marginBottom: 30 }}
-            />
-          )}
+          DISCOUNT CARD
+        </Typography>
 
-          {/* Names */}
-          <Typography variant="h5" fontWeight="bold">
-            {first}
+        {/* Employee info */}
+        <Box sx={{ flex: 1, p: 2 }}>
+          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+            {userData.firstName} {userData.middleName} {userData.surname}
           </Typography>
-
-          {middle && (
-            <Typography variant="h6" color="text.secondary">
-              {middle}
-            </Typography>
-          )}
-
-          <Typography variant="h5" fontWeight="bold">
-            {last}
+          <Typography variant="body2" color="text.secondary">
+            Employee ID: {userData.employeeId}
           </Typography>
+        </Box>
 
-          {/* Employee Code */}
-          <Typography
-            variant="subtitle1"
-            sx={{ mt: 4, fontWeight: 600, letterSpacing: 1 }}
+        {/* Timestamp */}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ position: "absolute", bottom: 12, left: 16 }}
+        >
+          Generated at: {timestamp}
+        </Typography>
+
+        {/* Buttons */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 12,
+            right: 16,
+            display: "flex",
+            gap: 8,
+          }}
+        >
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => navigate(-1)}
+            sx={{ textTransform: "none", fontSize: "0.75rem" }}
           >
-            Employee Code: {user.employeeId}
-          </Typography>
-
-          {/* Timestamp bottom-left */}
-          <Typography
-            variant="caption"
-            sx={{
-              position: "absolute",
-              bottom: 16,
-              left: 16,
-              color: "gray",
-            }}
+            ← Back
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            onClick={logout}
+            sx={{ textTransform: "none", fontSize: "0.75rem" }}
           >
-            {now.toLocaleString()}
-          </Typography>
-        </Paper>
-      </Box>
+            Logout
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   );
 }
