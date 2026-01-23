@@ -117,13 +117,6 @@ const forceUpdate = location.state?.forceUpdate || false;
   const [addressLoading, setAddressLoading] = useState(false);
   const [streetOptions, setStreetOptions] = useState([]);
   const [addressMap, setAddressMap] = useState([]);
-// For ID upload
-const [frontIdFile, setFrontIdFile] = useState(null);
-const [backIdFile, setBackIdFile] = useState(null);
-const [showIdUpload, setShowIdUpload] = useState(false);
-
-
-  
 
   const urlUserInfo =
     "https://prod-19.westeurope.logic.azure.com:443/workflows/0382cabb1f7d4771bc9b137b31cdd987/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=5xbVtCTV5KeN_mp5q8ORiLCzLumKfMAlkWhryTHKjho";
@@ -223,25 +216,10 @@ const [showIdUpload, setShowIdUpload] = useState(false);
     setFormData(updated);
     setChanged(hasChanges(updated, originalData.current));
   };
-useEffect(() => {
-  if (!originalData.current) return;
-  const idChanged =
-    formData.nationalId !== originalData.current.nationalId ||
-    formData.nationalIdExpiration !== originalData.current.nationalIdExpiration;
-
-  setShowIdUpload(idChanged);
-  if (!idChanged) {
-    setFrontIdFile(null);
-    setBackIdFile(null);
-  }
-}, [formData.nationalId, formData.nationalIdExpiration]);
-
-  
-
 
   // Update
-const handleUpdate = async () => {
-
+  // Update
+const handleUpdate = () => {
   // ✅ Allow update if there are changes OR if this is a forced/confirmation update
   if (!changed && !forceUpdate && !showWarning) return;
 
@@ -279,91 +257,6 @@ const handleUpdate = async () => {
     confirmationOnly: !changed && (forceUpdate || showWarning), // tells Logic App this was just confirmation
   };
 
-  // 🔹 Upload images only if ID changed AND both images are provided
-if (showIdUpload && frontIdFile && backIdFile) {
-  try {
-    const uploadFormData = new FormData();
-    uploadFormData.append("employeeId", formData.employeeId);
-    uploadFormData.append("frontId", frontIdFile);
-    uploadFormData.append("backId", backIdFile);
-
-    await fetch("https://prod-29.westeurope.logic.azure.com:443/workflows/bc2c79c0b43349efb92d98f11845bbc8/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=k5Xj1UP0jocR307QcQtkrdxGgL2wlEzzgbFyoPPEDJU", {
-      method: "POST",
-      body: uploadFormData,
-    });
-  } catch (err) {
-    console.error("Image upload failed:", err);
-    setSnackbar({
-      open: true,
-      message: "Failed to upload ID images. Please try again.",
-      severity: "error",
-    });
-    setLoading(false);
-    return; // stop the rest of the update
-  }
-}
-
-
-  // ✅ If ID upload is visible, make sure both files are uploaded
-if (showIdUpload) {
-  if (!frontIdFile || !backIdFile) {
-    setSnackbar({
-      open: true,
-      message: "Please upload both front and back ID images before updating.",
-      severity: "error",
-    });
-    return; // ⛔ stop submission
-  }
-}
-
-
-
-  // 🔹 Upload images if ID changed (block update if upload fails)
-if (showIdUpload) {
-  if (!frontIdFile || !backIdFile) {
-    setSnackbar({
-      open: true,
-      message: "Please upload both front and back ID images before updating.",
-      severity: "error",
-    });
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const uploadFormData = new FormData();
-    uploadFormData.append("employeeId", formData.employeeId);
-    uploadFormData.append("frontId", frontIdFile);
-    uploadFormData.append("backId", backIdFile);
-
-    // ✅ Your working Logic App trigger for uploads
-    const uploadResponse = await fetch(
-      "https://prod-29.westeurope.logic.azure.com:443/workflows/bc2c79c0b43349efb92d98f11845bbc8/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=k5Xj1UP0jocR307QcQtkrdxGgL2wlEzzgbFyoPPEDJU",
-      {
-        method: "POST",
-        body: uploadFormData,
-      }
-    );
-
-    if (!uploadResponse.ok) {
-      throw new Error(`Upload failed with status ${uploadResponse.status}`);
-    }
-
-    console.log("✅ ID images uploaded successfully.");
-  } catch (error) {
-    console.error("Upload error:", error);
-    setSnackbar({
-      open: true,
-      message: "Failed to upload ID images. Please try again.",
-      severity: "error",
-    });
-    setLoading(false);
-    return;
-  }
-}
-
-
-  // 🔹 Continue with main data update
   fetch(urlUserInfo, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -371,6 +264,8 @@ if (showIdUpload) {
   })
     .then(async (res) => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Logic App may not return JSON
       try {
         return await res.json();
       } catch {
@@ -405,7 +300,6 @@ if (showIdUpload) {
     .finally(() => setLoading(false));
 };
 
-
 useEffect(() => {
   if (localStorage.getItem("needsUpdate") === "false") {
     setShowWarning(false);
@@ -429,9 +323,6 @@ useEffect(() => {
 
   const logout = () => instance.logoutRedirect();
 
- 
-
-
   return (
     <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
@@ -443,9 +334,7 @@ useEffect(() => {
               style={{ width: 60, height: 60, objectFit: "contain" }}
             />
           )}
-          <Typography variant="h6" fontWeight="bold">
-            {userData.companyName}
-          </Typography>
+          
         </Grid>
         <Grid item sx={{ display: "flex", gap: 2 }}>
           <Button variant="outlined" color="primary" onClick={() => navigate("/")}>
@@ -642,96 +531,6 @@ useEffect(() => {
                 ))}
               </TextField>
             </Grid>
-{showIdUpload && (
-  <>
-    <Grid item xs={12}>
-      <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: "bold" }}>
-        Upload Updated ID (Required)
-      </Typography>
-    </Grid>
-
-    <Grid item xs={12} md={6}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Button
-          variant="contained"
-          component="label"
-          color={frontIdFile ? "success" : "primary"}
-          fullWidth
-        >
-          {frontIdFile ? `Front ID: ${frontIdFile.name}` : "Upload Front ID"}
-          <input
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => setFrontIdFile(e.target.files[0])}
-            required
-          />
-        </Button>
-        {frontIdFile && (
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={() => setFrontIdFile(null)}
-            sx={{ minWidth: 40, p: 0 }}
-          >
-            ✕
-          </Button>
-        )}
-      </Box>
-    </Grid>
-
-    <Grid item xs={12} md={6}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Button
-          variant="contained"
-          component="label"
-          color={backIdFile ? "success" : "primary"}
-          fullWidth
-        >
-          {backIdFile ? `Back ID: ${backIdFile.name}` : "Upload Back ID"}
-          <input
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => setBackIdFile(e.target.files[0])}
-            required
-          />
-        </Button>
-        {backIdFile && (
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={() => setBackIdFile(null)}
-            sx={{ minWidth: 40, p: 0 }}
-          >
-            ✕
-          </Button>
-        )}
-      </Box>
-    </Grid>
-
-    {(!frontIdFile || !backIdFile) && (
-      <Grid item xs={12}>
-        <Alert
-          severity="warning"
-          sx={{
-            mt: 2,
-            borderRadius: 1,
-            backgroundColor: "#fff8e1",
-            border: "1px solid #ffe58f",
-          }}
-        >
-          ⚠️ Please upload both Front and Back ID images before submitting your update.
-        </Alert>
-      </Grid>
-    )}
-  </>
-)}
-
-
-
-
-
           </Grid>
         </Paper>
 
@@ -862,16 +661,11 @@ useEffect(() => {
 
         <Grid container spacing={3} mt={3} alignItems="center">
           <Grid item xs={12} textAlign="right">
-            <Button
-  type="button"
-  variant="contained"
-  color="success"
-  disabled={(!changed && !forceUpdate && !showWarning) || loading}
-  onClick={handleUpdate}
->
-  {loading ? <CircularProgress size={24} /> : "Update Information"}
-</Button>
+            <Button variant="contained" color="success" disabled={(!changed && !forceUpdate && !showWarning) || loading}
 
+ onClick={handleUpdate}>
+              {loading ? <CircularProgress size={24} /> : "Update Information"}
+            </Button>
           </Grid>
         </Grid>
       </Paper>

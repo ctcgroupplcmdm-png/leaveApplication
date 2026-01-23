@@ -238,9 +238,7 @@ function UserInfo() {
               style={{ width: 60, height: 60, objectFit: "contain" }}
             />
           )}
-          <Typography variant="h6" fontWeight="bold">
-            {userData.companyName}
-          </Typography>
+          
         </Grid>
         <Grid item sx={{ display: "flex", gap: 2 }}>
           <Chip
