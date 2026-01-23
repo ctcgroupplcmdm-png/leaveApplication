@@ -3,6 +3,7 @@ import { useMsal } from "@azure/msal-react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Typography, Paper } from "@mui/material";
 
+// Import all company logos
 import argosy from "./assets/logos/argosy.png";
 import ctc from "./assets/logos/ctc.png";
 import artview from "./assets/logos/artview.png";
@@ -31,6 +32,7 @@ function DiscountCard() {
   const [userData, setUserData] = useState(null);
   const [timestamp, setTimestamp] = useState("");
 
+  // Freeze timestamp on first render
   useEffect(() => {
     if (accounts.length === 0) return;
 
@@ -48,7 +50,7 @@ function DiscountCard() {
       employeeId: account.idTokenClaims?.eid || "N/A",
     });
 
-    // Freeze timestamp
+    // Freeze timestamp once
     const now = new Date();
     const formatted = now.toLocaleString("en-GB", {
       day: "2-digit",
@@ -72,25 +74,23 @@ function DiscountCard() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#e0e0e0",
+        backgroundColor: "#f0f2f5",
         p: 2,
       }}
     >
       <Paper
-        elevation={10}
+        elevation={6}
         sx={{
-          width: 380,
-          height: 220,
-          borderRadius: 4,
-          background: "linear-gradient(145deg, #ffffff, #f0f0f3)",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+          width: 360,
+          borderRadius: 3,
+          p: 3,
+          background:
+            "linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)",
           position: "relative",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
         }}
       >
-        {/* Logo Background */}
+        {/* Logo */}
         {userData.companyName && companyLogos[userData.companyName] && (
           <Box
             component="img"
@@ -98,70 +98,45 @@ function DiscountCard() {
             alt={userData.companyName}
             sx={{
               width: "100%",
-              height: 80,
+              height: 120,
               objectFit: "cover",
+              borderRadius: "12px",
+              mb: 2,
             }}
           />
         )}
 
-        {/* DISCOUNT CARD text */}
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: "bold",
-            fontFamily: "'Arial Black', sans-serif",
-            color: "#ff5722",
-            textAlign: "center",
-            mt: 1,
-            textShadow: "1px 1px 2px rgba(0,0,0,0.4)",
-          }}
-        >
-          DISCOUNT CARD
+        {/* Employee Info */}
+        <Typography variant="h6" fontWeight="bold">
+          {userData.firstName} {userData.middleName} {userData.surname}
         </Typography>
-
-        {/* Employee info */}
-        <Box sx={{ flex: 1, p: 2 }}>
-          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-            {userData.firstName} {userData.middleName} {userData.surname}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Employee ID: {userData.employeeId}
-          </Typography>
-        </Box>
+        <Typography variant="subtitle1" color="text.secondary" mb={2}>
+          Employee ID: {userData.employeeId}
+        </Typography>
 
         {/* Timestamp */}
         <Typography
           variant="caption"
           color="text.secondary"
-          sx={{ position: "absolute", bottom: 12, left: 16 }}
+          sx={{ position: "absolute", bottom: 16, left: 16 }}
         >
           Generated at: {timestamp}
         </Typography>
 
         {/* Buttons */}
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: 12,
-            right: 16,
-            display: "flex",
-            gap: 8,
-          }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
           <Button
             variant="outlined"
-            size="small"
             onClick={() => navigate(-1)}
-            sx={{ textTransform: "none", fontSize: "0.75rem" }}
+            sx={{ textTransform: "none" }}
           >
             ← Back
           </Button>
           <Button
             variant="outlined"
             color="error"
-            size="small"
             onClick={logout}
-            sx={{ textTransform: "none", fontSize: "0.75rem" }}
+            sx={{ textTransform: "none" }}
           >
             Logout
           </Button>
