@@ -116,14 +116,15 @@ function DiscountCard() {
   style={{
     position: "absolute",
     bottom: 0,
-    left: 16,           // add horizontal padding
-    right: 16,          // add horizontal padding
-    width: "auto",      // let width adjust to fit
+    left: 16,           // horizontal padding
+    right: 16,          // horizontal padding
+    maxWidth: "calc(100% - 32px)", // ensures it fits within left/right
     maxHeight: 180,
     objectFit: "contain",
     opacity: 1,
   }}
 />
+
 
           )}
 
