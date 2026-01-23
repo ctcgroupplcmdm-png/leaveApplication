@@ -153,9 +153,7 @@ function LandingPage() {
     style={{ width: 60, height: 60, objectFit: "contain" }}
   />
 )}
-          <Typography variant="h6" fontWeight="bold">
-            {userData.companyName}
-          </Typography>
+         
         </Grid>
 
         <Grid item>
