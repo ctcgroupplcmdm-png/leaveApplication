@@ -96,8 +96,24 @@ function DiscountCard() {
             background: "#ffffff",
           }}
         >
-          {/* Logo */}
-          {companyLogos[user.companyName] && (
+  {/* Discount Card Title */}
+  <Typography
+    variant="h6"
+    fontWeight="bold"
+    sx={{
+      position: "absolute",
+      top: 16,
+      left: "50%",
+      transform: "translateX(-50%)",
+      letterSpacing: 2,
+    }}
+  >
+    DISCOUNT CARD
+  </Typography>
+
+  {/* Logo */}
+  {companyLogos[user.companyName] && (
+
             <img
               src={companyLogos[user.companyName]}
               alt="logo"
