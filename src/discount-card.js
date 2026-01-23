@@ -117,7 +117,7 @@ function DiscountCard() {
             mb: 6,
             letterSpacing: 3,
             textTransform: "uppercase",
-            color: "#004A99",
+            color: "#000000",
             textShadow: "1px 1px 3px rgba(0,0,0,0.3)", // subtle glow
           }}
         >
@@ -138,7 +138,7 @@ function DiscountCard() {
               maxHeight: 180,
               objectFit: "contain",
               
-              filter: "blur(1px)", // soft focus
+              
               transform: "translateY(50%)",
             }}
           />
