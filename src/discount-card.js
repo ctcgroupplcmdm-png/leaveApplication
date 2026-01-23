@@ -90,7 +90,7 @@ function DiscountCard() {
             borderRadius: 4,
             position: "relative",
             textAlign: "center",
-            background: "linear-gradient(to bottom, #9CCBFF 0%, #ffffff 75%)",
+            background: "linear-gradient(to bottom, #9CCBFF 0%, #ffffff 55%)",
           }}
         >
   {/* Discount Card Title */}
