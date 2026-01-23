@@ -30,7 +30,8 @@ function DiscountCard() {
   const { instance } = useMsal();
 
   const [user, setUser] = useState(null);
-  const [now, setNow] = useState(new Date());
+  const [now] = useState(new Date());
+
 
   const logout = () => instance.logoutRedirect();
 
@@ -40,11 +41,7 @@ function DiscountCard() {
     if (stored) setUser(stored);
   }, []);
 
-  // 🔹 Live clock
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+
 
   if (!user) return null;
 
@@ -98,18 +95,16 @@ function DiscountCard() {
         >
   {/* Discount Card Title */}
   <Typography
-    variant="h6"
-    fontWeight="bold"
-    sx={{
-      position: "absolute",
-      top: 16,
-      left: "50%",
-      transform: "translateX(-50%)",
-      letterSpacing: 2,
-    }}
-  >
-    DISCOUNT CARD
-  </Typography>
+  variant="h6"
+  fontWeight="bold"
+  sx={{
+    mb: 3,
+    letterSpacing: 2,
+  }}
+>
+  DISCOUNT CARD
+</Typography>
+
 
   {/* Logo */}
   {companyLogos[user.companyName] && (
@@ -124,7 +119,7 @@ function DiscountCard() {
     width: "100%",
     maxHeight: 180,
     objectFit: "contain",
-    opacity: 0.12
+    opacity: 0.8
   }}
 />
           )}
