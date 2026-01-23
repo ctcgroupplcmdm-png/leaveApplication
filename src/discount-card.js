@@ -117,7 +117,8 @@ function DiscountCard() {
             <img
               src={companyLogos[user.companyName]}
               alt="logo"
-              style={{ width: 100, marginBottom: 30 }}
+              style={{ width: 100, marginTop: 50, marginBottom: 30 }}
+
             />
           )}
 
