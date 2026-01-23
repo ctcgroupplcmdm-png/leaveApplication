@@ -14,16 +14,16 @@ import nks from "./assets/logos/nks.png";
 import limni from "./assets/logos/limni.png";
 
 const companyLogos = {
-  "Argosy Trading Company Ltd": argosy,
-  "Cyprus Trading Corporation Plc": ctc,
-  "Artview Co. Ltd": artview,
-  "CTC Automotive Ltd": automotive,
-  "Cassandra Trading Ltd": cassandra,
-  "Woolworth (Cyprus) Properties Plc": wwl,
-  "Apex Ltd": apex,
-  "N.K. Shacolas (Holdings) Ltd": nks,
-  "Cyprus Limni Resorts & Golf Courses Plc": limni,
-};
+  "Argosy Trading Company Ltd": "argosy.png",
+  "Cyprus Trading Corporation Plc": "ctc.png",
+  "Artview Co. Ltd": "artview.png",
+  "CTC Automotive Ltd": "automotive.png",
+  "Cassandra Trading Ltd": "cassandra.png",
+  "Woolworth (Cyprus) Properties Plc": "wwl.png",
+  "Apex Ltd": "apex.png",
+  "N.K. Shacolas (Holdings) Ltd": "nks.png",
+  "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
+};;
 
 function DiscountCard() {
   const navigate = useNavigate();
