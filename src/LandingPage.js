@@ -247,11 +247,13 @@ function LandingPage() {
     textTransform: "none",
     fontSize: "1.1rem",
     borderRadius: "12px",
+    display: { xs: "inline-flex", sm: "none" }, // ✅ visible on mobile only
   }}
   onClick={() => navigate("/discount-card")}
 >
   💳 Discount Card
 </Button>
+
         </Box>
 
         {/* ⚠️ Warning Banner */}
