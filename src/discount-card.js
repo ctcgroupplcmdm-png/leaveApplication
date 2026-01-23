@@ -137,7 +137,7 @@ function DiscountCard() {
               maxWidth: "calc(100% - 32px)",
               maxHeight: 180,
               objectFit: "contain",
-              opacity: 0.25, // subtle watermark
+              
               filter: "blur(1px)", // soft focus
               transform: "translateY(50%)",
             }}
