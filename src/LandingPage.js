@@ -18,7 +18,7 @@ const companyLogos = {
   "Argosy Trading Company Ltd": "argosy.png",
   "Cyprus Trading Corporation Plc": "ctc.png",
   "Artview Co. Ltd": "artview.png",
-  "CTC Automotive Ltd": "automotive.png",
+  "CTC Automotive LTD": "automotive.png",
   "Cassandra Trading Ltd": "cassandra.png",
   "Woolworth (Cyprus) Properties Plc": "wwl.png",
   "Apex Ltd": "apex.png",
