@@ -52,125 +52,139 @@ function DiscountCard() {
   const last = parts.length > 1 ? parts[parts.length - 1] : "";
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      {/* 🔹 Header (same style as PersonalInfo) */}
-      <Grid
-        container
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 3 }}
-      >
-        <Grid item>
-          <Button variant="outlined" onClick={() => navigate("/")}>
-            ← Back
-          </Button>
-        </Grid>
-
-        <Grid item>
-          <Button variant="outlined" color="error" onClick={logout}>
-            Logout
-          </Button>
-        </Grid>
+  <Box sx={{ p: 4, backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+    {/* 🔹 Header (same style as PersonalInfo) */}
+    <Grid
+      container
+      alignItems="center"
+      justifyContent="space-between"
+      sx={{ mb: 3 }}
+    >
+      <Grid item>
+        <Button variant="outlined" onClick={() => navigate("/")}>
+          ← Back
+        </Button>
       </Grid>
 
-      {/* 🔹 Card */}
-      <Box
+      <Grid item>
+        <Button variant="outlined" color="error" onClick={logout}>
+          Logout
+        </Button>
+      </Grid>
+    </Grid>
+
+    {/* 🔹 Card */}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        mt: 10,
+      }}
+    >
+      <Paper
+        elevation={12}
         sx={{
-          display: "flex",
-          justifyContent: "center",
-          mt: 10,
+          width: 360,
+          height: 520,
+          p: 4,
+          borderRadius: 4,
+          position: "relative",
+          textAlign: "center",
+          background: "linear-gradient(to bottom, #B9DCFF 0%, #ffffff 60%)",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
         }}
       >
-        <Paper
-          elevation={6}
+        {/* 🔹 Decorative diagonal lines / light rays overlay */}
+        <Box
           sx={{
-            width: 360,
-            height: 520,
-            p: 4,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background:
+              "repeating-linear-gradient(45deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 2px, transparent 2px, transparent 4px)",
             borderRadius: 4,
-            position: "relative",
-            textAlign: "center",
-            background: "linear-gradient(to bottom, #B9DCFF 0%, #ffffff 60%)",
+            pointerEvents: "none", // clicks pass through
+          }}
+        />
+
+        {/* Discount Card Title */}
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          sx={{
+            mb: 6,
+            letterSpacing: 3,
+            textTransform: "uppercase",
+            color: "#004A99",
+            textShadow: "1px 1px 3px rgba(0,0,0,0.3)", // subtle glow
           }}
         >
-  {/* Discount Card Title */}
-  <Typography
-  variant="h4"        // bigger size
-  fontWeight="bold"
-  sx={{
-    mb: 6,            // more space below
-    letterSpacing: 3, // slightly more spacing
-  }}
->
-  DISCOUNT CARD
-</Typography>
+          DISCOUNT CARD
+        </Typography>
 
+        {/* Logo */}
+        {companyLogos[user.companyName] && (
+          <img
+            src={companyLogos[user.companyName]}
+            alt="logo"
+            style={{
+              position: "absolute",
+              bottom: "25%",
+              left: 16,
+              right: 16,
+              maxWidth: "calc(100% - 32px)",
+              maxHeight: 180,
+              objectFit: "contain",
+              opacity: 0.25, // subtle watermark
+              filter: "blur(1px)", // soft focus
+              transform: "translateY(50%)",
+            }}
+          />
+        )}
 
+        {/* Names */}
+        <Typography variant="h5" fontWeight="bold">
+          {first}
+        </Typography>
 
-  {/* Logo */}
-  {companyLogos[user.companyName] && (
-
-           <img
-  src={companyLogos[user.companyName]}
-  alt="logo"
-  style={{
-    position: "absolute",
-    bottom: "25%",          // 25% from the bottom (adjust as needed)
-    left: 16,               // horizontal padding
-    right: 16,              // horizontal padding
-    maxWidth: "calc(100% - 32px)",
-    maxHeight: 180,
-    objectFit: "contain",
-    opacity: 1,
-    transform: "translateY(50%)", // center relative to bottom position
-  }}
-/>
-
-
-
-          )}
-
-          {/* Names */}
-          <Typography variant="h5" fontWeight="bold">
-            {first}
+        {middle && (
+          <Typography variant="h6" color="text.secondary">
+            {middle}
           </Typography>
+        )}
 
-          {middle && (
-            <Typography variant="h6" color="text.secondary">
-              {middle}
-            </Typography>
-          )}
+        <Typography variant="h5" fontWeight="bold">
+          {last}
+        </Typography>
 
-          <Typography variant="h5" fontWeight="bold">
-            {last}
-          </Typography>
+        {/* Employee Code */}
+        <Typography
+          variant="subtitle1"
+          sx={{ mt: 4, fontWeight: 600, letterSpacing: 1 }}
+        >
+          Employee Code: {user.employeeId}
+        </Typography>
 
-          {/* Employee Code */}
-          <Typography
-            variant="subtitle1"
-            sx={{ mt: 4, fontWeight: 600, letterSpacing: 1 }}
-          >
-            Employee Code: {user.employeeId}
-          </Typography>
-
-          {/* Timestamp bottom-left */}
-          <Typography
-  variant="caption"
-  sx={{
-    position: "absolute",
-    bottom: 16,
-    left: "50%",
-    transform: "translateX(-50%)",
-    color: "gray",
-  }}
->
-  {now.toLocaleString()}
-</Typography>
-
-        </Paper>
-      </Box>
+        {/* Timestamp bottom-center */}
+        <Typography
+          variant="caption"
+          sx={{
+            position: "absolute",
+            bottom: 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            color: "gray",
+          }}
+        >
+          {now.toLocaleString()}
+        </Typography>
+      </Paper>
     </Box>
-  );
+  </Box>
+);
+
 }
 
 export default DiscountCard;
