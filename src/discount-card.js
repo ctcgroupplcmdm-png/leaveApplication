@@ -90,20 +90,21 @@ function DiscountCard() {
             borderRadius: 4,
             position: "relative",
             textAlign: "center",
-            background: "linear-gradient(to bottom, #9CCBFF 0%, #ffffff 55%)",
+            background: "linear-gradient(to bottom, #B9DCFF 0%, #ffffff 60%)",
           }}
         >
   {/* Discount Card Title */}
   <Typography
-  variant="h6"
+  variant="h4"        // bigger size
   fontWeight="bold"
   sx={{
-    mb: 3,
-    letterSpacing: 2,
+    mb: 6,            // more space below
+    letterSpacing: 3, // slightly more spacing
   }}
 >
   DISCOUNT CARD
 </Typography>
+
 
 
   {/* Logo */}
@@ -114,14 +115,16 @@ function DiscountCard() {
   alt="logo"
   style={{
     position: "absolute",
-    bottom: 60,
-    left: 0,
-    width: "100%",
+    bottom: 0,
+    left: 16,           // add horizontal padding
+    right: 16,          // add horizontal padding
+    width: "auto",      // let width adjust to fit
     maxHeight: 180,
     objectFit: "contain",
-    opacity: 0.8
+    opacity: 1,
   }}
 />
+
           )}
 
           {/* Names */}
@@ -149,16 +152,18 @@ function DiscountCard() {
 
           {/* Timestamp bottom-left */}
           <Typography
-            variant="caption"
-            sx={{
-              position: "absolute",
-              bottom: 16,
-              left: 16,
-              color: "gray",
-            }}
-          >
-            {now.toLocaleString()}
-          </Typography>
+  variant="caption"
+  sx={{
+    position: "absolute",
+    bottom: 16,
+    left: "50%",
+    transform: "translateX(-50%)",
+    color: "gray",
+  }}
+>
+  {now.toLocaleString()}
+</Typography>
+
         </Paper>
       </Box>
     </Box>
