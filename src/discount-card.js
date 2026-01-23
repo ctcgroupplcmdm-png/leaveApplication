@@ -2,28 +2,27 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { Box, Typography, Button, Grid, Paper } from "@mui/material";
-
-import argosy from "./assets/logos/argosy.png";
-import ctc from "./assets/logos/ctc.png";
-import artview from "./assets/logos/artview.png";
-import automotive from "./assets/logos/automotive.png";
-import cassandra from "./assets/logos/cassandra.png";
-import wwl from "./assets/logos/wwl.png";
-import apex from "./assets/logos/apex.png";
-import nks from "./assets/logos/nks.png";
-import limni from "./assets/logos/limni.png";
+import argosyLogo from "./assets/logos/argosy.png";
+import ctcLogo from "./assets/logos/ctc.png";
+import artviewLogo from "./assets/logos/artview.png";
+import CassandraLogo from "./assets/logos/cassandra.png";
+import autoLogo from "./assets/logos/automotive.png";
+import wwlLogo from "./assets/logos/wwl.png";
+import apexlLogo from "./assets/logos/apex.png";
+import nkslLogo from "./assets/logos/nks.png";
+import limnilLogo from "./assets/logos/limni.png";
 
 const companyLogos = {
-  "Argosy Trading Company Ltd": "argosy.png",
-  "Cyprus Trading Corporation Plc": "ctc.png",
-  "Artview Co. Ltd": "artview.png",
-  "CTC Automotive LTD": "automotive.png",
-  "Cassandra Trading Ltd": "cassandra.png",
-  "Woolworth (Cyprus) Properties Plc": "wwl.png",
-  "Apex Ltd": "apex.png",
-  "N.K. Shacolas (Holdings) Ltd": "nks.png",
-  "Cyprus Limni Resorts & Golf Courses Plc": "limni.png",
-};;
+  "Argosy Trading Company Ltd": argosyLogo,
+  "Cyprus Trading Corporation Plc": ctcLogo,
+  "Artview Co. Ltd": artviewLogo,
+  "CTC Automotive LTD": autoLogo,
+  "Cassandra Trading Ltd": CassandraLogo,
+  "Woolworth (Cyprus) Properties Plc": wwlLogo,
+  "Apex Ltd": apexlLogo,
+  "N.K. Shacolas (Holdings) Ltd": nkslLogo,
+  "Cyprus Limni Resorts & Golf Courses Plc": limnilLogo,
+};
 
 function DiscountCard() {
   const navigate = useNavigate();
