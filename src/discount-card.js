@@ -110,20 +110,22 @@ function DiscountCard() {
   {/* Logo */}
   {companyLogos[user.companyName] && (
 
-            <img
+           <img
   src={companyLogos[user.companyName]}
   alt="logo"
   style={{
     position: "absolute",
-    bottom: 0,
-    left: 16,           // horizontal padding
-    right: 16,          // horizontal padding
-    maxWidth: "calc(100% - 32px)", // ensures it fits within left/right
+    bottom: "25%",          // 25% from the bottom (adjust as needed)
+    left: 16,               // horizontal padding
+    right: 16,              // horizontal padding
+    maxWidth: "calc(100% - 32px)",
     maxHeight: 180,
     objectFit: "contain",
     opacity: 1,
+    transform: "translateY(50%)", // center relative to bottom position
   }}
 />
+
 
 
           )}
