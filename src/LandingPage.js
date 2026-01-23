@@ -247,9 +247,7 @@ function LandingPage() {
     textTransform: "none",
     fontSize: "1.1rem",
     borderRadius: "12px",
-    width: { xs: "auto", sm: "0" }, // optional, force width on mobile
-    minWidth: "200px", // matches other buttons
-    display: { xs: "inline-flex", sm: "none" }, 
+   
   }}
   onClick={() => navigate("/discount-card")}
 >
